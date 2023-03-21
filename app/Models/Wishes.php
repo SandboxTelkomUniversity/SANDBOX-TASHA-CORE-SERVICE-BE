@@ -7,5 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Wishes extends Model
 {
-    use HasFactory;
+    protected $fillable = [
+        'wishes'
+    ];
 }
