@@ -3,7 +3,7 @@
 use App\Http\Controllers\api\WishesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use App\Models\Wishes;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -16,4 +16,5 @@ use Illuminate\Support\Facades\Route;
 */
 
 //wishes
+Route::get('/wishes', [WishesController::class, 'index']);
 Route::post('/wishes/store', [WishesController::class, 'store']);

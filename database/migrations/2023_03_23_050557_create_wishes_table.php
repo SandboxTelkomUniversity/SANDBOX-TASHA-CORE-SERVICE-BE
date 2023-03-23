@@ -14,10 +14,11 @@ return new class extends Migration
     public function up()
     {
         Schema::create('wishes', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->uuid('id')->primary();
             $table->text('wishes');
             $table->timestamps();
         });
+
     }
 
     /**
