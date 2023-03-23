@@ -64,9 +64,9 @@ class WishesController extends Controller
         $wishes = Wishes::find($id);
         if (is_null($wishes)){
 
-            return new WishesResource(false, 'Data Wishes Tidak Ditemukan', $wishes);
+            return new WishesResource(false, 'Data wish tidak ditemukan', $wishes);
         }
-            return new WishesResource(true, 'Data Wishes Ditemukan', $wishes);
+            return new WishesResource(true, 'Data wish  ditemukan', $wishes);
       
     }
 
@@ -74,7 +74,7 @@ class WishesController extends Controller
     public function update(Request $request, $id){
         $wishes = Wishes::find($id);
         if (is_null($wishes)) {
-            return new WishesResource(false, 'Data Wishes Tidak Ditemukan', $wishes);
+            return new WishesResource(false, 'Data wish tidak ditemukan', $wishes);
         }
 
         $validator = Validator::make($request->all(),
@@ -86,7 +86,7 @@ class WishesController extends Controller
         if($validator->fails()){
             return response()->json([
                 'status' => false,
-                'message' => 'Masukkan wish anda...',
+                'message' => 'Masukkan wish anda ...',
                 'data' => $validator->errors()
             ], 401);
        
@@ -94,18 +94,43 @@ class WishesController extends Controller
         else{
             $wishes->update($request->all());
 
-            if ($wishes) {
+          try{
                 return response()->json([
                     'status' => true,
                     'message' => 'Wish berhasil diupdate!',
                     'data' => $wishes
                 ], 200);
-            } else{
+            }
+            catch (QueryException $exception){
                 return response()->json([
                     'status' => false,
                     'message' => 'Wish gagal diupdate!',
                 ], 401);
             }
         }
+    }
+
+    public function destroy ($id){
+        $wishes = Wishes::find($id);
+        if (is_null($wishes)) {
+            return new WishesResource(false, 'Data wish tidak ditemukan', $wishes);
+        }
+
+        try{
+            $wishes->delete();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data wish berhasil dihapus',
+            ], 200);
+        }
+        catch  (QueryException $exception){
+            return response()->json([
+                'status' => 'false',
+                'message' => 'Data wish gagal dihapus',
+                'error' => $exception->errorInfo
+            ], 401);
+        }
+        
+        
     }
 }
