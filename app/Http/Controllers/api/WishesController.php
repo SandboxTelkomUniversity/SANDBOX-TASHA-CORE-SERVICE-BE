@@ -11,14 +11,14 @@ use Illuminate\Support\Facades\Validator;
 
 class WishesController extends Controller
 {
-    //get
+    //get all data wishes
     public function index()
     {
         $wishes = Wishes::all();
         return new WishesResource(true, 'List Data Wishes', $wishes);
     }
 
-    //create data
+    //create data wishes
     Public function store(Request $request)
     {
         $validator = Validator::make($request->all(),
@@ -55,5 +55,16 @@ class WishesController extends Controller
             }
         }
 
+    }
+
+    //get detail data wishes (by ID)
+    public function show_detail($id){
+
+        $wishes = Wishes::find($id);
+        if (is_null($wishes)){
+            return new WishesResource(false, 'Data Wishes Tidak Ditemukan', $wishes);
+        }
+            return new WishesResource(true, 'Data Wishes Ditemukan', $wishes);
+      
     }
 }

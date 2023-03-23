@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\api\WishesController;
+use App\Http\Controllers\WishesController as ControllersWishesController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Models\Wishes;
@@ -18,3 +19,4 @@ use App\Models\Wishes;
 //wishes
 Route::get('/wishes', [WishesController::class, 'index']);
 Route::post('/wishes/store', [WishesController::class, 'store']);
+Route::get('/wishes/show_detail/{id}', [WishesController::class, 'show_detail']);
