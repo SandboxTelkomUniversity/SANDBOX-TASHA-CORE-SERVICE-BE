@@ -20,3 +20,4 @@ use App\Models\Wishes;
 Route::get('/wishes', [WishesController::class, 'index']);
 Route::post('/wishes/store', [WishesController::class, 'store']);
 Route::get('/wishes/show_detail/{id}', [WishesController::class, 'show_detail']);
+Route::put('/wishes/update/{id}', [WishesController::class, 'update']);
