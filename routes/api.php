@@ -18,7 +18,7 @@ use App\Models\Wishes;
 
 //wishes
 Route::get('/wishes', [WishesController::class, 'index']);
-Route::post('/wishes/store', [WishesController::class, 'store']);
-Route::get('/wishes/show_detail/{id}', [WishesController::class, 'show_detail']);
-Route::put('/wishes/update/{id}', [WishesController::class, 'update']);
-Route::delete('/wishes/delete/{id}', [WishesController::class, 'destroy']);
+Route::post('/wishes', [WishesController::class, 'store']);
+Route::get('/wishes/{id}', [WishesController::class, 'show_detail']);
+Route::put('/wishes/{id}', [WishesController::class, 'update']);
+Route::delete('/wishes/{id}', [WishesController::class, 'destroy']);

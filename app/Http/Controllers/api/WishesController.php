@@ -34,7 +34,7 @@ class WishesController extends Controller
         if($validator->fails()){
             return response()->json([
                 'status' => false,
-                'message' => 'Masukkan wish anda...',
+                'message' => 'Validator Error',
                 'data' => $validator->errors()
             ],401);
 
@@ -46,12 +46,12 @@ class WishesController extends Controller
             if ($wishes ) {
                 return response()->json([
                     'status' => true,
-                    'message' => 'Wish berhasil disimpan!',
+                    'message' => 'Wish berhasil disimpan',
                 ], 200);
             } else{
                 return response()->json([
                     'status' => false,
-                    'message' => 'Wish gagal disimpan!',
+                    'message' => 'Wish gagal disimpan',
                 ], 401);
             }
         }
@@ -86,7 +86,7 @@ class WishesController extends Controller
         if($validator->fails()){
             return response()->json([
                 'status' => false,
-                'message' => 'Masukkan wish anda ...',
+                'message' => 'Validator Error',
                 'data' => $validator->errors()
             ], 401);
        
@@ -97,14 +97,14 @@ class WishesController extends Controller
           try{
                 return response()->json([
                     'status' => true,
-                    'message' => 'Wish berhasil diupdate!',
+                    'message' => 'Wish berhasil diupdate',
                     'data' => $wishes
                 ], 200);
             }
             catch (QueryException $exception){
                 return response()->json([
                     'status' => false,
-                    'message' => 'Wish gagal diupdate!',
+                    'message' => 'Wish gagal diupdate',
                 ], 401);
             }
         }
