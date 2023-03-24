@@ -130,7 +130,5 @@ class WishesController extends Controller
                 'error' => $exception->errorInfo
             ], 401);
         }
-        
-        
     }
 }
