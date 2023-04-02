@@ -13,9 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('user_wishes', function (Blueprint $table) {
-            $table->uuid('id_user_wish')->primary();
-            $table->foreignUuid('id_wish')->references('id')->on('wishes');
+        Schema::create('user_banks', function (Blueprint $table) {
+            $table->uuid('id_user_bank')->primary();
+            $table->enum('bank_name', ['BRI', 'BNI', 'BCA', 'Mandiri']);
+            $table->string('account_number');
+            $table->string('account_name');
             $table->timestamps();
         });
     }
@@ -27,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('user_wishes');
+        Schema::dropIfExists('user__banks');
     }
 };

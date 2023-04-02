@@ -2,10 +2,9 @@
 
 use App\Http\Controllers\api\WishesController;
 use App\Http\Controllers\api\AuthController;
-use App\Http\Controllers\WishesController as ControllersWishesController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\api\User_Active_Controller;
+use App\Http\Controllers\api\User_Bank_Controller;
 use Illuminate\Support\Facades\Route;
-use App\Models\Wishes;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -17,20 +16,22 @@ use App\Models\Wishes;
 |
 */
 
-//authentication
-Route::controller(AuthController::class)->group(function () {
-    Route::post('/login', 'login');
-    Route::post('/register', 'register');
-    Route::post('/logout', 'logout');
-    Route::post('/refresh', 'refresh');
-
-});
 
 //wishes
 Route::controller(WishesController::class)->group(function () {
-Route::get('/wishes', 'index');
-Route::post('/wishes', 'store');
-Route::get('/wishes/{id}', 'show_detail');
-Route::put('/wishes/{id}', 'update');
-Route::delete('/wishes/{id}', 'destroy');
+    Route::get('/wishes', 'index');
+    Route::post('/wishes', 'store');
+    Route::get('/wishes/{id}', 'show_detail');
+    Route::put('/wishes/{id}', 'update');
+    Route::delete('/wishes/{id}', 'destroy');
+});
+
+//user_active
+Route::controller(User_Active_Controller::class)->group(function(){
+    Route::get('/user_active', 'index');
+});
+
+//user_bank
+Route::controller(User_Bank_Controller::class)->group(function(){
+    Route::get('/user_bank', 'index');
 });
