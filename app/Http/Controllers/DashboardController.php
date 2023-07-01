@@ -27,13 +27,26 @@ class DashboardController extends Controller
             $response['data']['total_asset'] = 1;
             $response['data']['campaigns'] = Campaign::where('status', 'ACTIVE')->limit(5)->get();
 
-            $newsUrl = 'https://newsapi.org/v2/top-headlines?apiKey=2094e9cb485e4145b44c2b9fc7c82620&country=id&category=business&q=invest&page=1';
-            $newsData = json_decode(file_get_contents($newsUrl), true);
+            $newsUrl = 'https://newsapi.org/v2/top-headlines?apiKey=2094e9cb485e4145b44c2b9fc7c82620&category=business&q=invest&page=1';
 
-            if ($newsData && isset($newsData['articles'])) {
-                $response['data']['news'] = $newsData['articles'];
+            try {
+                $newsData = json_decode(@file_get_contents($newsUrl), true);
+
+                if ($newsData && isset($newsData['articles'])) {
+                    $response['data']['news']['error'] = null;
+                    $response['data']['news']['articles'] = $newsData['articles'];
+                } else {
+                    $response['data']['news'] = [];
+                    $response['data']['news']['error'] = 'Failed to fetch news data';
+                    $response['data']['news']['articles'] = null;
+                }
+            } catch (\Exception $e) {
+                $errorCode = $e->getCode();
+                $errorMessage = $e->getMessage();
+                $response['data']['news'] = [];
+                $response['data']['news']['error'] = "Failed to fetch news data - $errorCode - $errorMessage";
+                $response['data']['news']['articles'] = null;
             }
-
         } elseif ($authorization_level == 2) {
             $userCampaigns = Campaign::where('id_user', $user->id)->pluck('id');
 
