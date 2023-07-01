@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Campaign;
 use App\Models\CampaignReport;
-use App\Models\Payment;
+use App\Models\Transaction;
 use App\Models\User;
+use App\Models\UserActive;
 use App\Models\Withdraw;
 use Illuminate\Http\Request;
 
@@ -35,17 +36,35 @@ class DashboardController extends Controller
                 ->with('banners')
                 ->get();
         } elseif ($authorization_level == 3) {
-            $response['data']['total_investor_submission'] = 1;
-            $response['data']['total_sme_submission'] = 2;
-            $response['data']['total_campaign_submission'] = 3;
-            $response['data']['total_transaction_submission'] = 4;
-            $response['data']['total_withdraw_submission'] = 5;
-            $response['data']['total_report_submission'] = 6;
-            $response['data']['total_user_bank_submission'] = 7;
+            $response['data']['total_investor_submission'] = $this->getTotalSubmission(1);
+            $response['data']['total_sme_submission'] = $this->getTotalSubmission(2);
+            $response['data']['total_campaign_submission'] = Campaign::where('status', 'WAITING_VERIFICATION')->count();
+            $response['data']['total_transaction_submission'] = Transaction::where('status', 'WAITING_VERIFICATION')->count();
+            $response['data']['total_withdraw_submission'] = Withdraw::where('status', 'WAITING_VERIFICATION')->count();
+            $response['data']['total_report_submission'] = CampaignReport::where('is_exported', 0)->count();
+            $response['data']['total_user_bank_submission'] = UserActive::where('user_bank', 0)->count();
         }
 
         return response()->json($response);
     }
 
+    private function getTotalSubmission($authorizationLevel)
+    {
+        $requiredFields = ['phone_number', 'email', 'id_card', 'tax_registration_number', 'user_bank'];
+
+        if ($authorizationLevel == 2) {
+            $requiredFields[] = 'user_business';
+        }
+
+        return User::where('authorization_level', $authorizationLevel)
+            ->whereHas('user_active', function ($query) use ($requiredFields) {
+                $query->where(function ($query) use ($requiredFields) {
+                    foreach ($requiredFields as $field) {
+                        $query->where($field, 0);
+                    }
+                });
+            })
+            ->count();
+    }
 
 }
