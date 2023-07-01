@@ -25,6 +25,15 @@ class DashboardController extends Controller
 
         if ($authorization_level == 1) {
             $response['data']['total_asset'] = 1;
+            $response['data']['campaigns'] = Campaign::where('status', 'ACTIVE')->limit(5)->get();
+
+            $newsUrl = 'https://newsapi.org/v2/top-headlines?apiKey=2094e9cb485e4145b44c2b9fc7c82620&country=id&category=business&q=invest&page=1';
+            $newsData = json_decode(file_get_contents($newsUrl), true);
+
+            if ($newsData && isset($newsData['articles'])) {
+                $response['data']['news'] = $newsData['articles'];
+            }
+
         } elseif ($authorization_level == 2) {
             $userCampaigns = Campaign::where('id_user', $user->id)->pluck('id');
 
