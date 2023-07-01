@@ -55,9 +55,12 @@ class CampaignController extends Controller
         $field_campaign['id_user'] = $request->user()->id;
         if ($request->file('file_prospektus')) {
             $file_prospektus = $request->file('file_prospektus');
-            $path_of_file_prospektus = $file_prospektus->store('public/prospektus');
+            $original_name = $file_prospektus->getClientOriginalName();
+            $timestamp = now()->timestamp;
+            $new_file_name = $timestamp . '_' . $original_name;
+            $path_of_file_prospektus = $file_prospektus->storeAs('public/prospektus', $new_file_name);
             $prospektus_url = Storage::url($path_of_file_prospektus);
-            $field_user_image['prospektus_url'] = $prospektus_url;
+            $field_campaign['prospektus_url'] = $prospektus_url;
         }
         $data = Campaign::create($field_campaign);
 
@@ -65,12 +68,15 @@ class CampaignController extends Controller
         if ($request->file('file_banner')) {
             $array_banner_name = $request->banner_name;
             $array_file_banner = $request->file('file_banner');
-            for ($i = 0; $i < count($array_banner_name); $i++) {
-                $banner_name = $array_banner_name[$i];
+            for ($i = 0; $i < count($array_file_banner); $i++) {
+                $banner_name = isset($array_banner_name[$i]) ? $array_banner_name[$i] : null;
                 $file_banner = $array_file_banner[$i];
-                $path_of_file_banner = $file_banner->store('public/banner');
+                $original_name = $file_banner->getClientOriginalName();
+                $timestamp = now()->timestamp;
+                $new_file_name = $timestamp . '_' . $original_name;
+                $path_of_file_banner = $file_banner->storeAs('public/banner', $new_file_name);
                 $banner_url = Storage::url($path_of_file_banner);
-                $field_banner['name'] = $banner_name;
+                $field_banner['name'] = $banner_name ? $banner_name : $original_name;
                 $field_banner['url'] = $banner_url;
                 $banner = Banner::create($field_banner);
 
@@ -82,6 +88,9 @@ class CampaignController extends Controller
                 $campaign_banner = CampaignBanner::create($field_campaign_banner);
             }
         }
+
+        // add logical here
+        // TODO: add logical here
 
         return response()->json([
             'status' => 'success',
@@ -118,11 +127,17 @@ class CampaignController extends Controller
         unset($field_campaign['id_user']);
         if ($request->file('file_prospektus')) {
             $file_prospektus = $request->file('file_prospektus');
-            $path_of_file_prospektus = $file_prospektus->store('public/prospektus');
+            $original_name = $file_prospektus->getClientOriginalName();
+            $timestamp = now()->timestamp;
+            $new_file_name = $timestamp . '_' . $original_name;
+            $path_of_file_prospektus = $file_prospektus->storeAs('public/prospektus', $new_file_name);
             $prospektus_url = Storage::url($path_of_file_prospektus);
-            $field_user_image['prospektus_url'] = $prospektus_url;
+            $field_campaign['prospektus_url'] = $prospektus_url;
         }
         $data->update($field_campaign);
+
+        // add logical here
+        // TODO: add logical here
 
         return response()->json([
             'status' => 'success',
