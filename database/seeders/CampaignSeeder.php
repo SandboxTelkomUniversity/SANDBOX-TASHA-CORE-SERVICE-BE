@@ -4,6 +4,8 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+
 
 class CampaignSeeder extends Seeder
 {
@@ -13,7 +15,63 @@ class CampaignSeeder extends Seeder
      * @return void
      */
     public function run()
-    {
+    {   
+        // WAITING_VERIFICATION
+        DB::table('campaigns')->insert([
+            'id' => "08015683-6f49-4509-bb5b-28cf1f8bc70a",
+            'id_user' => "c2169bb5-43d3-4abd-af69-ffbb1303b1de",
+            'name' => 'Toko Rosaki Putra',
+            'description' => 'Toko Baju Paling Mewah di Dusun Cangak Kediri',
+            'type' => 'Musyarakah',
+            'target_funding_amount' => 1000000,
+            'current_funding_amount' => 0,
+            'start_date' => '2023-07-01',
+            'closing_date' => '2023-08-01',
+            'return_investment_period' => 1.0,
+            'status' => 'WAITING_VERIFICATION',
+            'prospektus_url' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+            'category' => 'Fashion',
+            'is_approved' => "1",
+            'max_sukuk' => 100,
+            'tenors' => 12,
+            'profit_share' => 0.5,
+            'sold_sukuk' => 0,
+            'created_by' => 'system',
+            'updated_by' => 'system',
+            'is_deleted' => "0",
+            'version' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        // REJECTED
+        DB::table('campaigns')->insert([
+            'id' => "dec51459-6815-4c9a-8e87-2eb3ef62efbf",
+            'id_user' => "c2169bb5-43d3-4abd-af69-ffbb1303b1de",
+            'name' => 'Laundry Ibu Sri',
+            'description' => 'Laundry terwangi',
+            'type' => 'Musyarakah',
+            'target_funding_amount' => 1000000,
+            'current_funding_amount' => 0,
+            'start_date' => '2023-07-01',
+            'closing_date' => '2023-08-01',
+            'return_investment_period' => 1.0,
+            'status' => 'REJECTED',
+            'prospektus_url' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+            'category' => 'Fashion',
+            'is_approved' => "1",
+            'max_sukuk' => 100,
+            'tenors' => 12,
+            'profit_share' => 0.5,
+            'sold_sukuk' => 0,
+            'created_by' => 'system',
+            'updated_by' => 'system',
+            'is_deleted' => "0",
+            'version' => false,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
         // ACTIVE
         DB::table('campaigns')->insert([
             'id' => "e677c205-4e40-41c7-ba76-17c120360227",

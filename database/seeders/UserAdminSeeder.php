@@ -6,7 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
-class AdminSeeder extends Seeder
+class UserAdminSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -15,34 +15,6 @@ class AdminSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('user_actives')->insert([
-            "id" => "a79177c6-42f3-4250-9e02-821f6a4ab11a",
-            "phone_number" => "1",
-            "email" => "1",
-            "id_card" => "1",
-            "tax_registration_number" => "1",
-            "user_bank" => "1",
-            "user_business" => "0",
-            "updated_by" => "system",
-            "created_by" => "system",
-            "is_deleted" => "0",
-            "version" => "1",
-        ]);
-
-        DB::table('user_actives')->insert([
-            "id" => "ae899c3c-4687-4d85-9b55-a6cb32684554",
-            "phone_number" => "1",
-            "email" => "1",
-            "id_card" => "1",
-            "tax_registration_number" => "1",
-            "user_bank" => "1",
-            "user_business" => "0",
-            "updated_by" => "system",
-            "created_by" => "system",
-            "is_deleted" => "0",
-            "version" => "1",
-        ]);
-
         DB::table('users')->insert([
             'id' => "d7811e8e-c9d1-4bc4-98e6-2163808e3447",
             'id_user_active' => "a79177c6-42f3-4250-9e02-821f6a4ab11a",
