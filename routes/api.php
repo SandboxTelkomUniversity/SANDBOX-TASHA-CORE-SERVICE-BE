@@ -6,6 +6,7 @@ use App\Http\Controllers\CampaignBannerController;
 use App\Http\Controllers\CampaignController;
 use App\Http\Controllers\CampaignReportController;
 use App\Http\Controllers\CampaignReportDetailController;
+use App\Http\Controllers\CampaignReportGroupController;
 use App\Http\Controllers\UserActiveController;
 use App\Http\Controllers\UserBankController;
 use App\Http\Controllers\FileController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\UserHeirController;
 use App\Http\Controllers\UserImageController;
 use App\Http\Controllers\WithdrawController;
 use Illuminate\Support\Facades\Route;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -47,10 +49,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 
-Route::post('login', [AuthController::class, 'login']);
-Route::post('register', [UserController::class, 'store']);
-Route::post('logout', [AuthController::class, 'logout'])->middleware('auth');
-Route::post('refresh', [AuthController::class, 'refresh'])->middleware('auth');
+$version = env('APP_VERSION', 'v1');
+
+Route::post("$version/login", [AuthController::class, 'login']);
+Route::post("$version/register", [UserController::class, 'store']);
+Route::post("$version/logout", [AuthController::class, 'logout'])->middleware('auth');
+Route::post("$version/refresh", [AuthController::class, 'refresh'])->middleware('auth');
 
 /*
 |---------------------------------------------------------------------------|
@@ -83,14 +87,14 @@ Route::post('refresh', [AuthController::class, 'refresh'])->middleware('auth');
 */
 
 // user_banks
-Route::group(['prefix' => 'upload'], function ($router) {
+Route::group(['prefix' => "$version/upload"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
         $router->post('', [FileController::class, 'store']);
     });
 });
 
-// user
-Route::group(['prefix' => 'user'], function ($router) {
+// users
+Route::group(['prefix' => "$version/users"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
         $router->get('', [UserController::class, 'index']);
         $router->get('/{id}', [UserController::class, 'show']);
@@ -100,15 +104,25 @@ Route::group(['prefix' => 'user'], function ($router) {
     });
 });
 
+// user
+Route::group(['prefix' => "$version/user"], function ($router) {
+    Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
+        $router->get('', [UserController::class, 'show_user_by_token']);
+        $router->post('', [UserController::class, 'update_user_by_token']);
+        $router->post('change-password', [UserController::class, 'change_password_user_by_token']);
+        $router->post('logout', [AuthController::class, 'logout']);
+    });
+});
+
 // user custom
-Route::group(['prefix' => 'user-custom'], function ($router) {
+Route::group(['prefix' => "$version/user-custom"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
         $router->post('change-password/{id}', [UserController::class, 'change_password_user']);
     });
 });
 
 // user_banks
-Route::group(['prefix' => 'user-banks'], function ($router) {
+Route::group(['prefix' => "$version/user-banks"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
         $router->get('', [UserBankController::class, 'index']);
         $router->get('/{id}', [UserBankController::class, 'show']);
@@ -119,8 +133,8 @@ Route::group(['prefix' => 'user-banks'], function ($router) {
 });
 
 // user_actives
-Route::group(['prefix' => 'user-actives'], function ($router) {
-    Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
+Route::group(['prefix' => "$version/user-actives"], function ($router) {
+    Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
         $router->get('', [UserActiveController::class, 'index']);
         $router->get('/{id}', [UserActiveController::class, 'show']);
         $router->post('', [UserActiveController::class, 'store']);
@@ -130,7 +144,7 @@ Route::group(['prefix' => 'user-actives'], function ($router) {
 });
 
 // user_bussiness
-Route::group(['prefix' => 'user-bussiness'], function ($router) {
+Route::group(['prefix' => "$version/user-business"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
         $router->get('', [UserBusinessController::class, 'index']);
         $router->get('/{id}', [UserBusinessController::class, 'show']);
@@ -141,7 +155,7 @@ Route::group(['prefix' => 'user-bussiness'], function ($router) {
 });
 
 // user_heir
-Route::group(['prefix' => 'user-heir'], function ($router) {
+Route::group(['prefix' => "$version/user-heir"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
         $router->get('', [UserHeirController::class, 'index']);
         $router->get('/{id}', [UserHeirController::class, 'show']);
@@ -152,7 +166,7 @@ Route::group(['prefix' => 'user-heir'], function ($router) {
 });
 
 // user_image
-Route::group(['prefix' => 'user-image'], function ($router) {
+Route::group(['prefix' => "$version/user-image"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
         $router->get('', [UserImageController::class, 'index']);
         $router->get('/{id}', [UserImageController::class, 'show']);
@@ -163,8 +177,8 @@ Route::group(['prefix' => 'user-image'], function ($router) {
 });
 
 // banner
-Route::group(['prefix' => 'banner'], function ($router) {
-    Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
+Route::group(['prefix' => "$version/banner"], function ($router) {
+    Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
         $router->get('', [BannerController::class, 'index']);
         $router->get('/{id}', [BannerController::class, 'show']);
         $router->post('', [BannerController::class, 'store']);
@@ -174,8 +188,8 @@ Route::group(['prefix' => 'banner'], function ($router) {
 });
 
 // receipt
-Route::group(['prefix' => 'receipt'], function ($router) {
-    Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
+Route::group(['prefix' => "$version/receipt"], function ($router) {
+    Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
         $router->get('', [ReceiptController::class, 'index']);
         $router->get('/{id}', [ReceiptController::class, 'show']);
         $router->post('', [ReceiptController::class, 'store']);
@@ -185,8 +199,8 @@ Route::group(['prefix' => 'receipt'], function ($router) {
 });
 
 // withdraw
-Route::group(['prefix' => 'withdraw'], function ($router) {
-    Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
+Route::group(['prefix' => "$version/withdraw"], function ($router) {
+    Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
         $router->get('', [WithdrawController::class, 'index']);
         $router->get('/{id}', [WithdrawController::class, 'show']);
         $router->post('', [WithdrawController::class, 'store']);
@@ -196,8 +210,8 @@ Route::group(['prefix' => 'withdraw'], function ($router) {
 });
 
 // campaign
-Route::group(['prefix' => 'campaign'], function ($router) {
-    Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
+Route::group(['prefix' => "$version/campaign"], function ($router) {
+    Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
         $router->get('', [CampaignController::class, 'index']);
         $router->get('/{id}', [CampaignController::class, 'show']);
         $router->post('', [CampaignController::class, 'store']);
@@ -207,8 +221,8 @@ Route::group(['prefix' => 'campaign'], function ($router) {
 });
 
 // transaction
-Route::group(['prefix' => 'transaction'], function ($router) {
-    Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
+Route::group(['prefix' => "$version/transaction"], function ($router) {
+    Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
         $router->get('', [TransactionController::class, 'index']);
         $router->get('/{id}', [TransactionController::class, 'show']);
         $router->post('', [TransactionController::class, 'store']);
@@ -218,8 +232,8 @@ Route::group(['prefix' => 'transaction'], function ($router) {
 });
 
 // campaign_report
-Route::group(['prefix' => 'campaign-report'], function ($router) {
-    Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
+Route::group(['prefix' => "$version/campaign-report"], function ($router) {
+    Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
         $router->get('', [CampaignReportController::class, 'index']);
         $router->get('/{id}', [CampaignReportController::class, 'show']);
         $router->post('', [CampaignReportController::class, 'store']);
@@ -228,9 +242,20 @@ Route::group(['prefix' => 'campaign-report'], function ($router) {
     });
 });
 
+// campaign_report_group
+Route::group(['prefix' => "$version/campaign-report-group"], function ($router) {
+    Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
+        $router->get('', [CampaignReportGroupController::class, 'index']);
+        $router->get('/{id}', [CampaignReportGroupController::class, 'show']);
+        $router->post('', [CampaignReportGroupController::class, 'store']);
+        $router->post('{id}', [CampaignReportGroupController::class, 'update']);
+        $router->delete('{id}', [CampaignReportGroupController::class, 'destroy']);
+    });
+});
+
 // campaign_report_detail
-Route::group(['prefix' => 'campaign-report-detail'], function ($router) {
-    Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
+Route::group(['prefix' => "$version/campaign-report-detail"], function ($router) {
+    Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
         $router->get('', [CampaignReportDetailController::class, 'index']);
         $router->get('/{id}', [CampaignReportDetailController::class, 'show']);
         $router->post('', [CampaignReportDetailController::class, 'store']);
@@ -240,8 +265,8 @@ Route::group(['prefix' => 'campaign-report-detail'], function ($router) {
 });
 
 // campaign_banner
-Route::group(['prefix' => 'campaign-banner'], function ($router) {
-    Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
+Route::group(['prefix' => "$version/campaign-banner"], function ($router) {
+    Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
         $router->get('', [CampaignBannerController::class, 'index']);
         $router->get('/{id}', [CampaignBannerController::class, 'show']);
         $router->post('', [CampaignBannerController::class, 'store']);
@@ -251,8 +276,8 @@ Route::group(['prefix' => 'campaign-banner'], function ($router) {
 });
 
 // payment
-Route::group(['prefix' => 'payment'], function ($router) {
-    Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
+Route::group(['prefix' => "$version/payment"], function ($router) {
+    Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
         $router->get('', [PaymentController::class, 'index']);
         $router->get('/{id}', [PaymentController::class, 'show']);
         $router->post('', [PaymentController::class, 'store']);
