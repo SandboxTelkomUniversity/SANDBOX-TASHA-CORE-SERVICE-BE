@@ -44,7 +44,7 @@ class Authenticate extends Middleware
         if (!empty($roles) && in_array('verified', $roles)) {
             $userActive = UserActive::find($user->id_user_active);
 
-            if ($userActive) {
+            if ($userActive && $user->authorization_level != 3) {
                 $requiredFields = ($user->authorization_level == 1)
                     ? ['phone_number', 'email', 'id_card', 'tax_registration_number', 'user_bank']
                     : ['phone_number', 'email', 'id_card', 'tax_registration_number', 'user_bank', 'user_business'];
