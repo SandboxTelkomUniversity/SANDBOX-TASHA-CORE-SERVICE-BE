@@ -380,6 +380,16 @@ class UserController extends Controller
             $path_of_file_id_card = $file_id_card->storeAs('public/id_card', $new_file_name);
             $id_card_url = Storage::url($path_of_file_id_card);
             $field_user_image['id_card_url'] = $id_card_url;
+
+            $new_file_name_parts = explode('_', $new_file_name);
+            $current_file_name_parts = explode('_', $data->user_image->id_card_url);
+            $new_file_name_without_timestamp = end($new_file_name_parts);
+            $current_file_name_without_timestamp = end($current_file_name_parts);
+
+            if ($new_file_name_without_timestamp != $current_file_name_without_timestamp) {
+                $data->user_active->update(['id_card' => 0]);
+            }
+
         }
         if ($request->file('file_id_card_with_face')) {
             $file_id_card_with_face = $request->file('file_id_card_with_face');
@@ -389,6 +399,15 @@ class UserController extends Controller
             $path_of_file_id_card_with_face = $file_id_card_with_face->storeAs('public/id_card_with_face', $new_file_name);
             $id_card_with_face_url = Storage::url($path_of_file_id_card_with_face);
             $field_user_image['id_card_with_face_url'] = $id_card_with_face_url;
+
+            $new_file_name_parts = explode('_', $new_file_name);
+            $current_file_name_parts = explode('_', $data->user_image->id_card_with_face_url);
+            $new_file_name_without_timestamp = end($new_file_name_parts);
+            $current_file_name_without_timestamp = end($current_file_name_parts);
+
+            if ($new_file_name_without_timestamp != $current_file_name_without_timestamp) {
+                $data->user_active->update(['id_card' => 0]);
+            }
         }
         if ($request->file('file_selfie')) {
             $file_selfie = $request->file('file_selfie');
@@ -398,21 +417,16 @@ class UserController extends Controller
             $path_of_file_selfie = $file_selfie->storeAs('public/selfie', $new_file_name);
             $selfie_url = Storage::url($path_of_file_selfie);
             $field_user_image['selfie_url'] = $selfie_url;
-        }
 
-        // update user active
-        if (isset($field_user_image['id_card_url']) && $field_user_image['id_card_url'] != $data->user_image->id_card_url) {
-            $data->user_active->update(['id_card' => 0]);
-        }
+            $new_file_name_parts = explode('_', $new_file_name);
+            $current_file_name_parts = explode('_', $data->user_image->selfie_url);
+            $new_file_name_without_timestamp = end($new_file_name_parts);
+            $current_file_name_without_timestamp = end($current_file_name_parts);
 
-        if (isset($field_user_image['id_card_with_face_url']) && $field_user_image['id_card_with_face_url'] != $data->user_image->id_card_with_face_url) {
-            $data->user_active->update(['id_card' => 0]);
+            if ($new_file_name_without_timestamp != $current_file_name_without_timestamp) {
+                $data->user_active->update(['id_card' => 0]);
+            }
         }
-
-        if (isset($field_user_image['selfie_url']) && $field_user_image['selfie_url'] != $data->user_image->selfie_url) {
-            $data->user_active->update(['id_card' => 0]);
-        }
-
 
         // update user image
         $data->user_image->update($field_user_image);
