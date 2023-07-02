@@ -375,10 +375,40 @@ class UserController extends Controller
         $field_user = $request->only((new User)->getFillable());
         $field_user['password'] = null;
         unset($field_user['password']);
+
+        // update user active
+        if(isset($field_user['phone_number']) && $field_user['phone_number'] !=  $data->phone_number) {
+            $data->user_active->update(['phone_number' => 0]);
+        }
+
+        if(isset($field_user['email']) && $field_user['email'] !=  $data->email) {
+            $data->user_active->update(['email' => 0]);
+        }
+
+        if(isset($field_user['tax_registration_number']) && $field_user['tax_registration_number'] !=  $data->tax_registration_number) {
+            $data->user_active->update(['tax_registration_number' => 0]);
+        }
+
+        // update user
         $data->update($field_user);
 
         // update user bank
         $field_user_bank = $request->only((new UserBank)->getFillable());
+
+        // update user active
+        if(isset($field_user_bank['bank_name']) && $field_user_bank['bank_name'] !=  $data->user_bank->bank_name) {
+            $data->user_active->update(['user_bank' => 0]);
+        }
+
+        if(isset($field_user_bank['account_number']) && $field_user_bank['account_number'] !=  $data->user_bank->account_number) {
+            $data->user_active->update(['user_bank' => 0]);
+        }
+
+        if(isset($field_user_bank['account_name']) && $field_user_bank['account_name'] !=  $data->user_bank->account_name) {
+            $data->user_active->update(['user_bank' => 0]);
+        }
+
+        // update user bank
         $data->user_bank->update($field_user_bank);
 
         // update user business
@@ -398,6 +428,22 @@ class UserController extends Controller
             $certificate_url = Storage::url($path_of_file_certificate);
             $field_user_bussiness['certificate_url'] = $certificate_url;
         }
+
+
+        // update user active
+        if(isset($field_user_bussiness['name']) && $field_user_bussiness['name'] !=  $data->user_business->name) {
+            $data->user_active->update(['user_business' => 0]);
+        }
+
+        if(isset($field_user_bussiness['certificate_url']) && $field_user_bussiness['certificate_url'] !=  $data->user_business->certificate_url) {
+            $data->user_active->update(['user_business' => 0]);
+        }
+
+        if(isset($field_user_bussiness['address']) && $field_user_bussiness['address'] !=  $data->user_business->address) {
+            $data->user_active->update(['user_business' => 0]);
+        }
+
+        // update user business
         $data->user_business->update($field_user_bussiness);
 
         // Update user heir
@@ -446,6 +492,22 @@ class UserController extends Controller
             $selfie_url = Storage::url($path_of_file_selfie);
             $field_user_image['selfie_url'] = $selfie_url;
         }
+
+        // update user active
+        if(isset($field_user_image['id_card_url']) && $field_user_image['id_card_url'] !=  $data->user_image->id_card_url) {
+            $data->user_active->update(['id_card' => 0]);
+        }
+
+        if(isset($field_user_image['id_card_with_face_url']) && $field_user_image['id_card_with_face_url'] !=  $data->user_image->id_card_with_face_url) {
+            $data->user_active->update(['id_card' => 0]);
+        }
+
+        if(isset($field_user_image['selfie_url']) && $field_user_image['selfie_url'] !=  $data->user_image->selfie_url) {
+            $data->user_active->update(['id_card' => 0]);
+        }
+
+
+        // update user image
         $data->user_image->update($field_user_image);
 
         // Add verified value to the data
