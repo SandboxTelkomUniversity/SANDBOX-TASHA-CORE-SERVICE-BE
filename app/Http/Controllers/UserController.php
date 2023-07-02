@@ -261,6 +261,10 @@ class UserController extends Controller
      */
     public static function addVerifiedValueToTheData($data): void
     {
+        if ($data === null) {
+            return;
+        }
+
         $data->is_verified = true;
         if ($data->authorization_level == 1) {
             $data->is_verified = $data->user_active->phone_number == 1 && $data->user_active->email == 1 && $data->user_active->id_card == 1 && $data->user_active->tax_registration_number == 1 && $data->user_active->user_bank == 1;
