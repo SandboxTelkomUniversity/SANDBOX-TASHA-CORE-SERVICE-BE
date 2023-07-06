@@ -185,24 +185,35 @@ class CampaignController extends Controller
         $campaigns = Campaign::all();
 
         foreach ($campaigns as $campaign) {
-            $withdraw = Withdraw::where('id_campaign', $campaign->id)->get();
+            $withdraw = DB::table('withdraws')
+            ->join('campaigns', 'campaigns.id', '=', 'withdraws.id_campaign')
+            ->get();
 
+            if (isset($withdraw)){
+                if ($campaign->status == 'ACHIEVED' && $withdraw->status == 'APPROVED' ){
+                    $campaign->status = 'RUNNING';
+                    $campaign->updated_by= "system";
+                    $campaign->save();  
+                }
 
-            // DONE
-            // TODO need check if $withdraw not null ( isset )
-
-            // RUNNING
-            // TODO need check if $withdraw not null ( isset )
-
-            // PROCESSED
-            // TODO need check if $withdraw not null ( isset )
-
+                else if (($withdraw->status == 'WAITING_VERIFICATION' || $withdraw->status == 'REJECTED') && $campaign->status == 'ACHIEVED'){
+                    $campaign->status = 'PROCESSED';
+                    $campaign->updated_by= "system";
+                    $campaign->save();  
+                }
+            }
+            else {
+                return;
+            }
+            
             // ACHIEVED
             if ($campaign->target_funding_amount == $campaign->current_funding_amount || $campaign->max_sukuk == $campaign->sold_sukuk) {
                 $campaign->status = 'ACHIEVED';
                 $campaign->updated_by= "system";
                 $campaign->save();
             }
+
+            return;
         }
     }
 
