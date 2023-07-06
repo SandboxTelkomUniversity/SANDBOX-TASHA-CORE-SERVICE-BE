@@ -41,18 +41,25 @@ class Authenticate extends Middleware
             return response()->json(['error' => 'Unauthorized', 'message' => 'authorization level not allowed',], 401);
         }
 
-        if(!empty($roles) && in_array('verified', $roles)){
-            $userActive = UserActive::find($user->id_user_active)->first();
+        if (!empty($roles) && in_array('verified', $roles)) {
+            $userActive = UserActive::find($user->id_user_active);
 
-            if($user->authorization_level == 1 && ($userActive->phone_number == 0 || $userActive->email == 0 || $userActive->id_card == 0 || $userActive->tax_registration_number == 0 || $userActive->user_bank == 0)){
-                return response()->json(['error' => 'Unauthorized', 'message' => 'authorization not verified, please contact us!',], 401);
-            }
+            if ($userActive && $user->authorization_level != 3) {
+                $requiredFields = ($user->authorization_level == 1)
+                    ? ['phone_number', 'email', 'id_card', 'tax_registration_number', 'user_bank']
+                    : ['phone_number', 'email', 'id_card', 'tax_registration_number', 'user_bank', 'user_business'];
 
-            if($user->authorization_level == 2 && ($userActive->phone_number == 0 || $userActive->email == 0 || $userActive->id_card == 0 || $userActive->tax_registration_number == 0 || $userActive->user_bank == 0 || $userActive->user_business == 0)){
-                return response()->json(['error' => 'Unauthorized', 'message' => 'authorization not verified, please contact us!',], 401);
+                $missingFields = array_filter($requiredFields, fn($field) => $userActive->$field == 0);
+
+                if (!empty($missingFields)) {
+                    return response()->json([
+                        'error' => 'Unauthorized',
+                        'message' => 'Authorization not verified, please contact us!'
+                    ], 401);
+                }
+
             }
         }
-
 
         return $next($request);
     }

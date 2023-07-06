@@ -18,6 +18,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserHeirController;
 use App\Http\Controllers\UserImageController;
 use App\Http\Controllers\WithdrawController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -283,6 +284,14 @@ Route::group(['prefix' => "$version/payment"], function ($router) {
         $router->post('', [PaymentController::class, 'store']);
         $router->post('{id}', [PaymentController::class, 'update']);
         $router->delete('{id}', [PaymentController::class, 'destroy']);
+    });
+});
+
+
+// dashboard
+Route::group(['prefix' => "$version/dashboard"], function ($router){
+    Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
+        $router->get('', [DashboardController::class, 'index']);
     });
 });
 
