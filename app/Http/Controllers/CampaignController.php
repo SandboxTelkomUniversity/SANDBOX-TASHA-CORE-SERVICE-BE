@@ -187,7 +187,7 @@ class CampaignController extends Controller
         foreach ($campaigns as $campaign) {
             $withdraw = Withdraw::where('id_campaign', $campaign->id)->first();
 
-            if ($campaign->target_funding_amount == $campaign->current_funding_amount || $campaign->max_sukuk == $campaign->sold_sukuk) {
+            if (!isset($withdraw) && $campaign->target_funding_amount == $campaign->current_funding_amount || $campaign->max_sukuk == $campaign->sold_sukuk) {
                 $campaign->update([
                     'status' => 'ACHIEVED',
                     'updated_by' => 'system'
@@ -201,7 +201,7 @@ class CampaignController extends Controller
                 ]);
             }
 
-            if (isset($withdraw) && $campaign->status == 'ACHIEVED' && $withdraw->status == 'APPROVED') {
+            if (isset($withdraw) && $campaign->status == 'PROCESSED' && $withdraw->status == 'APPROVED') {
                 $campaign->update([
                     'status' => 'RUNNING',
                     'updated_by' => 'system'
