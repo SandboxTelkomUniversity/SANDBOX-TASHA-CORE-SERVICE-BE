@@ -113,5 +113,19 @@ class BannerSeeder extends Seeder
                 'updated_at' => now(),
             ],
         ]);
+
+        DB::table('banners')->insert([
+            [
+                'id' => '4dfd5e5f-ab19-4c10-8c89-4055370d8c15',
+                'name' => 'Banner 8',
+                'url' => 'https://images.unsplash.com/photo-1589036002547-14f93cf1f8e9',
+                'updated_by' => 'system',
+                'created_by' => 'system',
+                'is_deleted' => 0,
+                'version' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
     }
 }

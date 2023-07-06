@@ -28,7 +28,8 @@ class DatabaseSeeder extends Seeder
             new CampaignSeeder(),
             new CampaignBannerSeeder(),
             new ReceiptSeeder(),
-            new PaymentSeeder()
+            new PaymentSeeder(),
+            new TransactionSeeder(),
         ];
         
         foreach ($seeders as $seeder) {

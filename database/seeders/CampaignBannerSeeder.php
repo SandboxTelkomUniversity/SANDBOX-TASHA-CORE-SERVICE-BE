@@ -104,6 +104,20 @@ class CampaignBannerSeeder extends Seeder
             ],
         ]);
 
+        DB::table('campaign_banners')->insert([
+            [
+                'id' => 'ceb74564-7e2d-4900-a62a-58ce8acaa7a3',
+                'id_banner' => '4dfd5e5f-ab19-4c10-8c89-4055370d8c15',
+                'id_campaign' => '8537ceae-3982-49b6-a360-a33024731dda',
+                'created_by' => 'system',
+                'updated_by' => 'system',
+                'is_deleted' => false,
+                'version' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
         //DONE
         DB::table('campaign_banners')->insert([
             [
