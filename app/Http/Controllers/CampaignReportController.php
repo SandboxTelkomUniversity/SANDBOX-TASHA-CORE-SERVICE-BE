@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Imports\CampaignReportDetailImport;
 use App\Imports\DataImport;
 use App\Models\CampaignReport;
+use App\Models\Campaign;
 use App\Models\CampaignReportDetail;
 use App\Models\CampaignReportGroup;
 use App\Models\Payment;
@@ -55,7 +56,11 @@ class CampaignReportController extends Controller
 
     public function store(Request $request)
     {
-        // create receipts
+        $id_campaign = $request->id_campaign;
+        $status = DB::table('campaigns')->where('id', $id_campaign)->value('status');
+
+        if ($status == 'RUNNING'){
+            
         $field_receipts = [];
         $receipts = Receipt::create($field_receipts);
 
@@ -83,7 +88,12 @@ class CampaignReportController extends Controller
             'data' => $data,
             'server_time' => (int) round(microtime(true) * 1000),
         ]);
+    } else {
+        return response()->json([
+            'status' => 'gagal',
+            'message' => 'gabiisa' ]);
     }
+}
 
     public function show(Request $request, $id)
     {
