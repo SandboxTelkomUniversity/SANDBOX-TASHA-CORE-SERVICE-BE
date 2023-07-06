@@ -14,6 +14,9 @@ class CampaignController extends Controller
 {
     public function index(Request $request)
     {
+
+        $this->triggerCampaignStatusBySystem();
+
         $current_page = $request->query('current_page', 1);
         $data = new Campaign;
 
@@ -50,6 +53,9 @@ class CampaignController extends Controller
 
     public function store(Request $request)
     {
+
+        $this->triggerCampaignStatusBySystem();
+
         // create campaign
         $field_campaign = $request->only((new Campaign())->getFillable());
         $field_campaign['id_user'] = $request->user()->id;
@@ -102,6 +108,8 @@ class CampaignController extends Controller
 
     public function show(Request $request, $id)
     {
+        $this->triggerCampaignStatusBySystem();
+
         $data = new Campaign();
         // Include related data
         if ($request->query('include')) {
@@ -122,6 +130,8 @@ class CampaignController extends Controller
 
     public function update(Request $request, $id)
     {
+        $this->triggerCampaignStatusBySystem();
+
         $data = Campaign::find($id);
         $field_campaign = $request->only((new Campaign())->getFillable());
         $field_campaign['id_user'] = null;
@@ -150,6 +160,8 @@ class CampaignController extends Controller
 
     public function destroy($id)
     {
+        $this->triggerCampaignStatusBySystem();
+
         $data = Campaign::find($id);
         $data->is_deleted = true;
         $data->save();
@@ -162,4 +174,33 @@ class CampaignController extends Controller
             'server_time' => (int) round(microtime(true) * 1000),
         ]);
     }
+
+
+    /**
+     * @return void
+     */
+    public function triggerCampaignStatusBySystem(): void
+    {
+        $campaigns = Campaign::all();
+
+        foreach ($campaigns as $campaign) {
+            // DONE
+            // TODO
+
+            // RUNNING
+            // TODO
+
+            // PROCESSED
+            // TODO
+
+            // ACHIEVED
+            if ($campaign->target_funding_amount == $campaign->current_funding_amount || $campaign->max_sukuk == $campaign->sold_sukuk) {
+                $campaign->status = 'ACHIEVED';
+                $campaign->updated_by= "system";
+                $campaign->save();
+            }
+        }
+    }
+
+
 }
