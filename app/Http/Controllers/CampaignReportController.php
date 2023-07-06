@@ -109,6 +109,7 @@ class CampaignReportController extends Controller
     {
         $data = CampaignReport::find($id);
         $field_campaign_reports = $request->only((new CampaignReport())->getFillable());
+
         if ($request->file('file_document')) {
             $file_document = $request->file('file_document');
             $original_name = $file_document->getClientOriginalName();
@@ -118,31 +119,40 @@ class CampaignReportController extends Controller
             $document_url = Storage::url($path_of_file_document);
             $field_campaign_reports['document_url'] = $document_url;
         }
+
         $data->update($field_campaign_reports);
 
         if ($request->is_exported && $request->is_exported == 1) {
             $file = public_path($data->document_url);
-            // $file = $request->file('file_document');
-            $import = new CampaignReportDetailImport();
-            // $import = new DataImport();
-            $data_of_campaign_report_detail = Excel::toArray($import, $file);
-            // $this->transformDate($data_of_campaign_report_detail[0][0][0]);
-            // return $data_of_campaign_report_detail[0];
-            foreach($data_of_campaign_report_detail[0] as $key => $value){
-                // if($key != 0){
-                    $field_campaign_report_detail = [];
-                    $field_campaign_report_detail['date'] = $this->transformDate($value['date']);
-                    $field_campaign_report_detail['amount'] = $value['amount'];
-                    $field_campaign_report_detail['description'] = $value['description'];
-                    $field_campaign_report_detail['evidence'] = $value['evidence'];
-                    $field_campaign_report_detail['type'] = $value['type'];
-                    $campaign_report_detail = CampaignReportDetail::create($field_campaign_report_detail);
+            $extension = pathinfo($file, PATHINFO_EXTENSION);
 
-                    $field_campaign_report_group = [];
-                    $field_campaign_report_group['id_campaign_report'] = $data->id;
-                    $field_campaign_report_group['id_campaign_report_detail'] = $campaign_report_detail->id;
-                    $campaign_report_group = CampaignReportGroup::create($field_campaign_report_group);
-                // }
+            if ($extension === 'xlsx') {
+                $import = new CampaignReportDetailImport();
+                $data_of_campaign_report_detail = Excel::toArray($import, $file);
+            } elseif ($extension === 'csv') {
+                $data_of_campaign_report_detail = array_map('str_getcsv', file($file));
+                array_shift($data_of_campaign_report_detail); // Remove header row
+            } else {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unsupported file format',
+                    'server_time' => (int) round(microtime(true) * 1000),
+                ], 422);
+            }
+
+            foreach ($data_of_campaign_report_detail as $value) {
+                $campaign_report_detail = CampaignReportDetail::create([
+                    'date' => ($extension === 'csv') ? $value[0] : $this->transformDate($value['date']),
+                    'description' => ($extension === 'csv') ? $value[1] : $value['description'],
+                    'evidence' => ($extension === 'csv') ? $value[2] : $value['evidence'],
+                    'amount' => ($extension === 'csv') ? $value[3] : $value['amount'],
+                    'type' => ($extension === 'csv') ? $value[4] : $value['type'],
+                ]);
+
+                CampaignReportGroup::create([
+                    'id_campaign_report' => $data->id,
+                    'id_campaign_report_detail' => $campaign_report_detail->id,
+                ]);
             }
         }
 
