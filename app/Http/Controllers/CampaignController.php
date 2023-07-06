@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Banner;
 use App\Models\Campaign;
 use App\Models\CampaignBanner;
+use App\Models\Withdraw;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -184,14 +185,17 @@ class CampaignController extends Controller
         $campaigns = Campaign::all();
 
         foreach ($campaigns as $campaign) {
+            $withdraw = Withdraw::where('id_campaign', $campaign->id)->get();
+
+
             // DONE
-            // TODO
+            // TODO need check if $withdraw not null ( isset )
 
             // RUNNING
-            // TODO
+            // TODO need check if $withdraw not null ( isset )
 
             // PROCESSED
-            // TODO
+            // TODO need check if $withdraw not null ( isset )
 
             // ACHIEVED
             if ($campaign->target_funding_amount == $campaign->current_funding_amount || $campaign->max_sukuk == $campaign->sold_sukuk) {
