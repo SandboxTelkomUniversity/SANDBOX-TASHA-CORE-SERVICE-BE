@@ -55,6 +55,7 @@ class CampaignReportController extends Controller
 
     public function store(Request $request)
     {
+        
         // create receipts
         $field_receipts = [];
         $receipts = Receipt::create($field_receipts);

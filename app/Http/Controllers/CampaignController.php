@@ -134,6 +134,7 @@ class CampaignController extends Controller
             $prospektus_url = Storage::url($path_of_file_prospektus);
             $field_campaign['prospektus_url'] = $prospektus_url;
         }
+
         $data->update($field_campaign);
 
         // add logical here
@@ -161,4 +162,27 @@ class CampaignController extends Controller
             'server_time' => (int) round(microtime(true) * 1000),
         ]);
     }
+
+
+    public function addTriggerStatus($data){
+
+        if ($data == null){
+            return;
+        }
+
+        $data->status = true;
+        if($data->campaign->target_funding_amount == $data->campaign->current_funding_amount)
+        {
+             $data->status= "ACHIEVED";
+        }
+        else if ($data->campaign->status == "ACHIEVED" && ($data->withdraw->status == "WAITING VERIFICATION" or $data->withdraw->status == "REJECTED"))
+        {
+            $data->status= "PROCESSED";
+        }
+        else if ($data->campaign->status == "ACHIEVED" && $data->withdraw->status == "APPROVED")
+        {
+            $data->status = "RUNNING";
+        }
+
+         }
 }
