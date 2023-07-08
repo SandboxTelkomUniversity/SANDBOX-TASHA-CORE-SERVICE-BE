@@ -13,6 +13,7 @@ class TransactionController extends Controller
 {
     public function index(Request $request)
     {
+        CampaignController::triggerCampaignStatusBySystem();
         $current_page = $request->query('current_page', 1);
         $data = new Transaction;
 
@@ -49,6 +50,7 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
+        CampaignController::triggerCampaignStatusBySystem();
         // create receipt
         $field_receipts = $request->only((new Receipt())->getFillable());
         if ($request->hasFile('file_receipt')) {
@@ -80,6 +82,7 @@ class TransactionController extends Controller
 
     public function show(Request $request, $id)
     {
+        CampaignController::triggerCampaignStatusBySystem();
         $data = new Transaction();
         // Include related data
         if ($request->query('include')) {
@@ -100,6 +103,7 @@ class TransactionController extends Controller
 
     public function update(Request $request, $id)
     {
+        CampaignController::triggerCampaignStatusBySystem();
         $data = Transaction::find($id);
         $field_receipts = $request->only((new Receipt())->getFillable());
         if ($request->hasFile('file_receipt')) {
@@ -136,6 +140,7 @@ class TransactionController extends Controller
 
     public function destroy($id)
     {
+        CampaignController::triggerCampaignStatusBySystem();
         $data = Transaction::find($id);
         $data->is_deleted = true;
         $data->save();

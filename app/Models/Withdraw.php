@@ -15,6 +15,7 @@ class Withdraw extends Model
     protected $table = 'withdraws';
     protected $fillable = [
         'id_user',
+        'id_campaign',
         'amount',
         'registrasion_fee',
         'service_fee',
@@ -25,6 +26,10 @@ class Withdraw extends Model
     public function user()
     {
         return $this->belongsTo(User::class, 'id_user');
+    }
+
+    public function campaign(){
+        return $this->belongsTo(Withdraw::class, 'id_campaign');
     }
 
     public static function boot()

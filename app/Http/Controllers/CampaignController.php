@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Banner;
 use App\Models\Campaign;
 use App\Models\CampaignBanner;
+use App\Models\CampaignReport;
+use App\Models\Payment;
+use App\Models\Withdraw;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +17,9 @@ class CampaignController extends Controller
 {
     public function index(Request $request)
     {
+
+        $this->triggerCampaignStatusBySystem();
+
         $current_page = $request->query('current_page', 1);
         $data = new Campaign;
 
@@ -50,6 +56,9 @@ class CampaignController extends Controller
 
     public function store(Request $request)
     {
+
+        $this->triggerCampaignStatusBySystem();
+
         // create campaign
         $field_campaign = $request->only((new Campaign())->getFillable());
         $field_campaign['id_user'] = $request->user()->id;
@@ -101,7 +110,10 @@ class CampaignController extends Controller
     }
 
     public function show(Request $request, $id)
-    {
+    {   
+
+        $this->triggerCampaignStatusBySystem();
+
         $data = new Campaign();
         // Include related data
         if ($request->query('include')) {
@@ -122,6 +134,9 @@ class CampaignController extends Controller
 
     public function update(Request $request, $id)
     {
+     
+        $this->triggerCampaignStatusBySystem();
+
         $data = Campaign::find($id);
         $field_campaign = $request->only((new Campaign())->getFillable());
         $field_campaign['id_user'] = null;
@@ -150,6 +165,8 @@ class CampaignController extends Controller
 
     public function destroy($id)
     {
+        $this->triggerCampaignStatusBySystem();
+
         $data = Campaign::find($id);
         $data->is_deleted = true;
         $data->save();
@@ -162,4 +179,55 @@ class CampaignController extends Controller
             'server_time' => (int) round(microtime(true) * 1000),
         ]);
     }
+
+
+    /**
+     * @return void
+     */
+    public function triggerCampaignStatusBySystem(): void
+    {
+        $campaigns = Campaign::all();
+
+        foreach ($campaigns as $campaign) {
+            $withdraw = Withdraw::where('id_campaign', $campaign->id)->first();
+            $campaignReport = CampaignReport::join('campaigns', 'campaign_reports.id_campaign', '=', 'campaigns.id')
+            ->join('payments', 'campaign_reports.id_payment', '=', 'payments.id')
+            ->select('campaign_reports.is_exported', 'payments.status', 'payments.amount')
+            ->where('campaigns.id', $campaign->id)
+            ->where('campaign_reports.is_exported', '1')
+            ->where('payments.status', 'APPROVED')
+            ->whereNotNull('payments.amount')
+            ->count();
+
+            if (!isset($withdraw) && $campaign->target_funding_amount == $campaign->current_funding_amount || $campaign->max_sukuk == $campaign->sold_sukuk) {
+                $campaign->update([
+                    'status' => 'ACHIEVED',
+                    'updated_by' => 'system'
+                ]);
+            }
+
+            if (isset($withdraw) && $campaign->status == 'ACHIEVED' && ($withdraw->status == 'WAITING_VERIFICATION' || $withdraw->status == 'REJECTED')) {
+                $campaign->update([
+                    'status' => 'PROCESSED',
+                    'updated_by' => 'system'
+                ]);
+            }
+
+            if (isset($withdraw) && $campaign->status == 'PROCESSED' && $withdraw->status == 'APPROVED') {
+                $campaign->update([
+                    'status' => 'RUNNING',
+                    'updated_by' => 'system'
+                ]);
+            }
+
+            if (isset($withdraw) && $campaignReport == ($campaign->tenors / $campaign->return_investment_period)){
+                $campaign->update([
+                    'status' => 'DONE',
+                    'updated_by' => 'system'
+                ]);
+            }
+        }
+    }
+
+
 }
