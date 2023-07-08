@@ -127,23 +127,31 @@ class PaymentController extends Controller
     public function update(Request $request, $id)
     {
         $data = Payment::find($id);
-        $field_receipts = $request->only((new Receipt())->getFillable());
-        if ($request->hasFile('file_receipt')) {
-            $file_receipt = $request->file('file_receipt');
-            $original_name = $file_receipt->getClientOriginalName();
-            $timestamp = now()->timestamp;
-            $new_file_name = $timestamp . '_' . $original_name;
-            $path_of_file_receipt = $file_receipt->storeAs('public/receipt', $new_file_name);
-            $receipt_url = Storage::url($path_of_file_receipt);
-            $field_receipts['receipt_url'] = $receipt_url;
+
+        if ($data->receipt) {
+            $field_receipts = $request->only((new Receipt())->getFillable());
+
+            if ($request->hasFile('file_receipt')) {
+                $file_receipt = $request->file('file_receipt');
+                $original_name = $file_receipt->getClientOriginalName();
+                $timestamp = now()->timestamp;
+                $new_file_name = $timestamp . '_' . $original_name;
+                $path_of_file_receipt = $file_receipt->storeAs('public/receipt', $new_file_name);
+                $receipt_url = Storage::url($path_of_file_receipt);
+                $field_receipts['receipt_url'] = $receipt_url;
+            }
+
+            $field_payment = $request->only((new Payment())->getFillable());
+            $field_payment['id_user'] = null;
+            $field_payment['id_receipt'] = null;
+            unset($field_payment['id_user']);
+            unset($field_payment['id_receipt']);
+
+            $data->receipt->update($field_receipts);
         }
-        $field_payment = $request->only((new Payment())->getFillable());
-        $field_payment['id_user'] = null;
-        $field_payment['id_receipt'] = null;
-        unset($field_payment['id_user']);
-        unset($field_payment['id_receipt']);
-        $data->receipt->update($field_receipts);
+
         $data->update($field_payment);
+
         return response()->json([
             'status' => 'success',
             'message' => 'Data updated successfully',
