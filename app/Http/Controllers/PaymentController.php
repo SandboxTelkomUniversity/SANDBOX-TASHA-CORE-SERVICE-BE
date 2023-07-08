@@ -47,29 +47,66 @@ class PaymentController extends Controller
         ]);
     }
 
+    function JatuhTempo()
+    {
+        $sudahbayar = DB::table('campaign_reports')
+                        ->join('payments', 'campaign_reports.id_payment', '=', 'payments.id')
+                        ->select('campaign_reports.is_exported', 'payments.status', 'payments.amount')
+                        ->where('campaign_reports.is_exported', '1')
+                        ->where('payments.status', 'APPROVED')
+                        ->whereNotNull('payments.amount')
+                        ->count();
+
+        $cicilanke = $sudahbayar + 1;
+    }
+
     public function store(Request $request)
     {
-        $field_receipts = $request->only((new Receipt())->getFillable());
-        if ($request->hasFile('file_receipt')) {
-            $file_receipt = $request->file('file_receipt');
-            $original_name = $file_receipt->getClientOriginalName();
-            $timestamp = now()->timestamp;
-            $new_file_name = $timestamp . '_' . $original_name;
-            $path_of_file_receipt = $file_receipt->storeAs('public/receipt', $new_file_name);
-            $receipt_url = Storage::url($path_of_file_receipt);
-            $field_receipts['receipt_url'] = $receipt_url;
+        $id_campaign = $request->id_campaign;
+        $status = DB::table('campaigns')->where('id', $id_campaign)->value('status');
+
+        $sudahbayar = DB::table('campaign_reports')
+                        ->join('payments', 'campaign_reports.id_payment', '=', 'payments.id')
+                        ->select('campaign_reports.is_exported', 'payments.status', 'payments.amount')
+                        ->where('campaign_reports.is_exported', '1')
+                        ->where('payments.status', 'APPROVED')
+                        ->whereNotNull('payments.amount')
+                        ->count();
+
+        $cicilanke = $sudahbayar + 1; 
+
+        $reported = DB::table('campaign_reports')->where('id_campaign', $id_campaign)->where('is_exported', '1')->count();
+
+        if ($status == "RUNNING" && $reported == $cicilanke) {
+             $field_receipts = $request->only((new Receipt())->getFillable());
+            if ($request->hasFile('file_receipt')) {
+                $file_receipt = $request->file('file_receipt');
+                $original_name = $file_receipt->getClientOriginalName();
+                $timestamp = now()->timestamp;
+                $new_file_name = $timestamp . '_' . $original_name;
+                $path_of_file_receipt = $file_receipt->storeAs('public/receipt', $new_file_name);
+                $receipt_url = Storage::url($path_of_file_receipt);
+                $field_receipts['receipt_url'] = $receipt_url;
+            }
+            $receipts = Receipt::create($field_receipts);
+            $field_payment = $request->only((new Payment())->getFillable());
+            $field_payment['id_user'] = $request->user()->id;
+            $field_payment['id_receipt'] = $receipts->id;
+            $data = Payment::create($field_payment);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data created successfully',
+                'data' => $data,
+                'server_time' => (int) round(microtime(true) * 1000),
+            ]);
+        }else{
+            return response()->json([
+                'status' => 'error',
+                'message' => 'lapor dulu'
+            ]);
         }
-        $receipts = Receipt::create($field_receipts);
-        $field_payment = $request->only((new Payment())->getFillable());
-        $field_payment['id_user'] = $request->user()->id;
-        $field_payment['id_receipt'] = $receipts->id;
-        $data = Payment::create($field_payment);
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data created successfully',
-            'data' => $data,
-            'server_time' => (int) round(microtime(true) * 1000),
-        ]);
+
+        
     }
 
     public function show(Request $request, $id)
