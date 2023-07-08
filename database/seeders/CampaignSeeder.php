@@ -15,7 +15,7 @@ class CampaignSeeder extends Seeder
      * @return void
      */
     public function run()
-    {   
+    {
         // WAITING_VERIFICATION
         DB::table('campaigns')->insert([
             'id' => "08015683-6f49-4509-bb5b-28cf1f8bc70a",
@@ -27,7 +27,7 @@ class CampaignSeeder extends Seeder
             'current_funding_amount' => 0,
             'start_date' => '2023-07-01',
             'closing_date' => '2023-08-01',
-            'return_investment_period' => 1.0,
+            'return_investment_period' => 3,
             'status' => 'WAITING_VERIFICATION',
             'prospektus_url' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
             'category' => 'Fashion',
@@ -55,7 +55,7 @@ class CampaignSeeder extends Seeder
             'current_funding_amount' => 0,
             'start_date' => '2023-07-01',
             'closing_date' => '2023-08-01',
-            'return_investment_period' => 1.0,
+            'return_investment_period' => 4,
             'status' => 'REJECTED',
             'prospektus_url' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
             'category' => 'Fashion',
@@ -83,7 +83,7 @@ class CampaignSeeder extends Seeder
             'current_funding_amount' => 500000,
             'start_date' => '2023-07-01',
             'closing_date' => '2023-08-01',
-            'return_investment_period' => 1.0,
+            'return_investment_period' => 6,
             'status' => 'ACTIVE',
             'prospektus_url' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
             'category' => 'Makanan',
@@ -110,7 +110,7 @@ class CampaignSeeder extends Seeder
             'current_funding_amount' => 2000000,
             'start_date' => '2023-07-01',
             'closing_date' => '2023-08-10',
-            'return_investment_period' => 1.0,
+            'return_investment_period' => 3,
             'status' => 'ACHIEVED',
             'prospektus_url' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
             'category' => 'Technology',
@@ -137,7 +137,7 @@ class CampaignSeeder extends Seeder
             'current_funding_amount' => 1000000,
             'start_date' => '2023-07-01',
             'closing_date' => '2023-08-20',
-            'return_investment_period' => 1.0,
+            'return_investment_period' => 4,
             'status' => 'PROCESSED',
             'prospektus_url' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
             'category' => 'Tekstil',
@@ -164,7 +164,7 @@ class CampaignSeeder extends Seeder
             'current_funding_amount' => 1000000,
             'start_date' => '2023-07-01',
             'closing_date' => '2023-08-21',
-            'return_investment_period' => 1.0,
+            'return_investment_period' => 3,
             'status' => 'RUNNING',
             'prospektus_url' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
             'category' => 'Makanan',
@@ -191,7 +191,7 @@ class CampaignSeeder extends Seeder
             'current_funding_amount' => 5000000,
             'start_date' => '2023-07-01',
             'closing_date' => '2023-08-22',
-            'return_investment_period' => 1.0,
+            'return_investment_period' => 4,
             'status' => 'RUNNING',
             'prospektus_url' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
             'category' => 'Makanan',
@@ -218,7 +218,7 @@ class CampaignSeeder extends Seeder
             'current_funding_amount' => 1000000,
             'start_date' => '2023-07-01',
             'closing_date' => '2023-08-21',
-            'return_investment_period' => 1.0,
+            'return_investment_period' => 3,
             'status' => 'DONE',
             'prospektus_url' => 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
             'category' => 'Tekstil',
@@ -235,5 +235,5 @@ class CampaignSeeder extends Seeder
             'updated_at' => now(),
         ]);
     }
-    
+
 }

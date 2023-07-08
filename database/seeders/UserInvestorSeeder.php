@@ -53,7 +53,7 @@ class UserInvestorSeeder extends Seeder
             'address' => 'Address B',
             'id_card' => '1234567890123457',
             'tax_registration_number' => '123456789012346',
-            'email' => 'investor@gmail.com',
+            'email' => 'investor2@gmail.com',
             'password' => bcrypt('password'),
             'employment_status' => 'Employed',
             'authorization_level' => '1',

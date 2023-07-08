@@ -23,7 +23,7 @@ return new class extends Migration
             $table->bigInteger('current_funding_amount')->nullable();
             $table->date('start_date')->nullable();
             $table->date('closing_date')->nullable();
-            $table->float('return_investment_period')->nullable();;
+            $table->integer('return_investment_period')->nullable();;
             $table->enum('status', ['WAITING_VERIFICATION', 'REJECTED', 'ACTIVE', 'ACHIEVED', 'PROCESSED', 'RUNNING', 'DONE'])->default('WAITING_VERIFICATION');
             $table->string('prospektus_url')->nullable();
             $table->string('category')->nullable();
