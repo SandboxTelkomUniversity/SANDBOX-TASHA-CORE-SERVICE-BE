@@ -15,7 +15,8 @@ return new class extends Migration
     {
         Schema::create('withdraws', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->uuid('id_user')->nullable();;
+            $table->uuid('id_user')->nullable();
+            $table->uuid('id_campaign')->nullable();
             $table->bigInteger('amount');
             $table->bigInteger('registration_fee')->default('100000');
             $table->bigInteger('service_fee')->default('10000');
@@ -27,6 +28,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('id_user')->references('id')->on('users');
+            $table->foreign('id_campaign')->references('id')->on('campaigns');
         });
     }
 
