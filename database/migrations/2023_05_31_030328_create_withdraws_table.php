@@ -16,9 +16,9 @@ return new class extends Migration
         Schema::create('withdraws', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('id_user')->nullable();;
-            $table->bigInteger('amount')->nullable();;
-            $table->bigInteger('registration_fee')->nullable();;
-            $table->bigInteger('service_fee')->nullable();;
+            $table->bigInteger('amount');
+            $table->bigInteger('registration_fee')->default('100000');
+            $table->bigInteger('service_fee')->default('10000');
             $table->enum('status', ['WAITING_VERIFICATION', 'REJECTED', 'APPROVED'])->default('WAITING_VERIFICATION');
             $table->string('created_by')->default('system');
             $table->string('updated_by')->default('system');
