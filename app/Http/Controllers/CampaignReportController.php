@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Imports\CampaignReportDetailImport;
 use App\Imports\DataImport;
 use App\Models\CampaignReport;
+use App\Models\Campaign;
 use App\Models\CampaignReportDetail;
 use App\Models\CampaignReportGroup;
 use App\Models\Payment;
