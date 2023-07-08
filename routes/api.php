@@ -54,6 +54,7 @@ $version = env('APP_VERSION', 'v1');
 
 Route::post("$version/login", [AuthController::class, 'login']);
 Route::post("$version/register", [UserController::class, 'store']);
+Route::get("$version/JatuhTempo", [PaymentController::class, 'JatuhTempo']);
 Route::post("$version/logout", [AuthController::class, 'logout'])->middleware('auth');
 Route::post("$version/refresh", [AuthController::class, 'refresh'])->middleware('auth');
 
@@ -281,7 +282,7 @@ Route::group(['prefix' => "$version/payment"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
         $router->get('', [PaymentController::class, 'index']);
         $router->get('/{id}', [PaymentController::class, 'show']);
-        $router->post('', [PaymentController::class, 'store']);
+        $router->post('', [PaymentController::class, 'update2']);
         $router->post('{id}', [PaymentController::class, 'update']);
         $router->delete('{id}', [PaymentController::class, 'destroy']);
     });
