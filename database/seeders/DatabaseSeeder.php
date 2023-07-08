@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             new ReceiptSeeder(),
             new PaymentSeeder(),
             new TransactionSeeder(),
+            new WithdrawSeeder(),
         ];
         
         foreach ($seeders as $seeder) {
