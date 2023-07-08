@@ -53,7 +53,7 @@ class UserAdminSeeder extends Seeder
             'address' => 'Address B',
             'id_card' => '1234567890123457',
             'tax_registration_number' => '123456789012346',
-            'email' => 'admin1@gmail.com',
+            'email' => 'admin2@gmail.com',
             'password' => bcrypt('password'),
             'employment_status' => 'Tasha Employee',
             'authorization_level' => '3',
