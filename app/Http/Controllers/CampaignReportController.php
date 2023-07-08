@@ -56,7 +56,11 @@ class CampaignReportController extends Controller
 
     public function store(Request $request)
     {
+        $id_campaign = $request->id_campaign;
+        $status = DB::table('campaigns')->where('id', $id_campaign)->value('status');
 
+        if ($status == "RUNNING") {
+            // create receipts
         $field_receipts = [];
         $receipts = Receipt::create($field_receipts);
 
@@ -84,7 +88,14 @@ class CampaignReportController extends Controller
             'data' => $data,
             'server_time' => (int) round(microtime(true) * 1000),
         ]);
-}
+        } else{
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The project has not started yet.'
+            ]);
+        }
+
+    }
 
     public function show(Request $request, $id)
     {

@@ -47,15 +47,25 @@ class WithdrawController extends Controller
 
     public function store(Request $request)
     {
-        $field_withdraw = $request->only((new Withdraw())->getFillable());
-        $field_withdraw['id_user'] = $request->user()->id;
-        $data = Withdraw::create($field_withdraw);
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data created successfully',
-            'data' => $data,
-            'server_time' => (int) round(microtime(true) * 1000),
-        ]);
+        $id_campaign = $request->id_campaign;
+        $status = DB::table('campaigns')->where('id', $id_campaign)->value('status');
+
+        if ($status == "ACHIEVED") {
+            $field_withdraw = $request->only((new Withdraw())->getFillable());
+            $field_withdraw['id_user'] = $request->user()->id;
+            $data = Withdraw::create($field_withdraw);
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data created successfully',
+                'data' => $data,
+                'server_time' => (int) round(microtime(true) * 1000),
+            ]);
+        } else{
+            return response()->json([
+                'status' => 'error',
+                'message' => 'The project funds have not been collected yet.'
+            ]);
+        }
     }
 
     public function show(Request $request, $id)
@@ -108,4 +118,5 @@ class WithdrawController extends Controller
             'server_time' => (int) round(microtime(true) * 1000),
         ]);
     }
+
 }

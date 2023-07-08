@@ -23,13 +23,13 @@ return new class extends Migration
             $table->bigInteger('current_funding_amount')->nullable();
             $table->date('start_date')->nullable();
             $table->date('closing_date')->nullable();
-            $table->integer('return_investment_period')->nullable();;
+            $table->integer('return_investment_period')->default(1);
             $table->enum('status', ['WAITING_VERIFICATION', 'REJECTED', 'ACTIVE', 'ACHIEVED', 'PROCESSED', 'RUNNING', 'DONE'])->default('WAITING_VERIFICATION');
             $table->string('prospektus_url')->nullable();
             $table->string('category')->nullable();
             $table->boolean('is_approved')->nullable();
             $table->integer('max_sukuk')->nullable();
-            $table->integer('tenors')->nullable();
+            $table->integer('tenors')->default(1);
             $table->float('profit_share')->nullable();
             $table->integer('sold_sukuk')->nullable();
             $table->string('created_by')->default('system');
