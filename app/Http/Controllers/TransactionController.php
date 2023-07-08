@@ -13,6 +13,7 @@ class TransactionController extends Controller
 {
     public function index(Request $request)
     {
+        CampaignController::triggerCampaignStatusBySystem();
         $current_page = $request->query('current_page', 1);
         $data = new Transaction;
 
@@ -49,11 +50,15 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
+        CampaignController::triggerCampaignStatusBySystem();
         // create receipt
         $field_receipts = $request->only((new Receipt())->getFillable());
         if ($request->hasFile('file_receipt')) {
             $file_receipt = $request->file('file_receipt');
-            $path_of_file_receipt = $file_receipt->store('public/receipt');
+            $original_name = $file_receipt->getClientOriginalName();
+            $timestamp = now()->timestamp;
+            $new_file_name = $timestamp . '_' . $original_name;
+            $path_of_file_receipt = $file_receipt->storeAs('public/receipt', $new_file_name);
             $receipt_url = Storage::url($path_of_file_receipt);
             $field_receipts['receipt_url'] = $receipt_url;
         }
@@ -62,6 +67,11 @@ class TransactionController extends Controller
         $field_transactions['id_user'] = $request->user()->id;
         $field_transactions['id_receipt'] = $receipts->id;
         $data = Transaction::create($field_transactions);
+
+        // add logical here
+        // TODO: add logical here
+
+
         return response()->json([
             'status' => 'success',
             'message' => 'Data created successfully',
@@ -72,6 +82,7 @@ class TransactionController extends Controller
 
     public function show(Request $request, $id)
     {
+        CampaignController::triggerCampaignStatusBySystem();
         $data = new Transaction();
         // Include related data
         if ($request->query('include')) {
@@ -92,11 +103,15 @@ class TransactionController extends Controller
 
     public function update(Request $request, $id)
     {
+        CampaignController::triggerCampaignStatusBySystem();
         $data = Transaction::find($id);
         $field_receipts = $request->only((new Receipt())->getFillable());
         if ($request->hasFile('file_receipt')) {
             $file_receipt = $request->file('file_receipt');
-            $path_of_file_receipt = $file_receipt->store('public/receipt');
+            $original_name = $file_receipt->getClientOriginalName();
+            $timestamp = now()->timestamp;
+            $new_file_name = $timestamp . '_' . $original_name;
+            $path_of_file_receipt = $file_receipt->storeAs('public/receipt', $new_file_name);
             $receipt_url = Storage::url($path_of_file_receipt);
             $field_receipts['receipt_url'] = $receipt_url;
         }
@@ -109,6 +124,11 @@ class TransactionController extends Controller
         unset($field_transactions['id_receipt']);
         $data->receipt->update($field_receipts);
         $data->update($field_transactions);
+
+        // add logical here
+        // TODO: add logical here
+
+
         return response()->json([
             'status' => 'success',
             'message' => 'Data updated successfully',
@@ -120,6 +140,7 @@ class TransactionController extends Controller
 
     public function destroy($id)
     {
+        CampaignController::triggerCampaignStatusBySystem();
         $data = Transaction::find($id);
         $data->is_deleted = true;
         $data->save();

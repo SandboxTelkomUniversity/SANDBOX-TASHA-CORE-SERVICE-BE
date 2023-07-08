@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Banner;
 use App\Models\Campaign;
 use App\Models\CampaignBanner;
+use App\Models\Withdraw;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,9 @@ class CampaignController extends Controller
 {
     public function index(Request $request)
     {
+
+        $this->triggerCampaignStatusBySystem();
+
         $current_page = $request->query('current_page', 1);
         $data = new Campaign;
 
@@ -50,14 +54,20 @@ class CampaignController extends Controller
 
     public function store(Request $request)
     {
+
+        $this->triggerCampaignStatusBySystem();
+
         // create campaign
         $field_campaign = $request->only((new Campaign())->getFillable());
         $field_campaign['id_user'] = $request->user()->id;
         if ($request->file('file_prospektus')) {
             $file_prospektus = $request->file('file_prospektus');
-            $path_of_file_prospektus = $file_prospektus->store('public/prospektus');
+            $original_name = $file_prospektus->getClientOriginalName();
+            $timestamp = now()->timestamp;
+            $new_file_name = $timestamp . '_' . $original_name;
+            $path_of_file_prospektus = $file_prospektus->storeAs('public/prospektus', $new_file_name);
             $prospektus_url = Storage::url($path_of_file_prospektus);
-            $field_user_image['prospektus_url'] = $prospektus_url;
+            $field_campaign['prospektus_url'] = $prospektus_url;
         }
         $data = Campaign::create($field_campaign);
 
@@ -65,12 +75,15 @@ class CampaignController extends Controller
         if ($request->file('file_banner')) {
             $array_banner_name = $request->banner_name;
             $array_file_banner = $request->file('file_banner');
-            for ($i = 0; $i < count($array_banner_name); $i++) {
-                $banner_name = $array_banner_name[$i];
+            for ($i = 0; $i < count($array_file_banner); $i++) {
+                $banner_name = isset($array_banner_name[$i]) ? $array_banner_name[$i] : null;
                 $file_banner = $array_file_banner[$i];
-                $path_of_file_banner = $file_banner->store('public/banner');
+                $original_name = $file_banner->getClientOriginalName();
+                $timestamp = now()->timestamp;
+                $new_file_name = $timestamp . '_' . $original_name;
+                $path_of_file_banner = $file_banner->storeAs('public/banner', $new_file_name);
                 $banner_url = Storage::url($path_of_file_banner);
-                $field_banner['name'] = $banner_name;
+                $field_banner['name'] = $banner_name ? $banner_name : $original_name;
                 $field_banner['url'] = $banner_url;
                 $banner = Banner::create($field_banner);
 
@@ -83,6 +96,9 @@ class CampaignController extends Controller
             }
         }
 
+        // add logical here
+        // TODO: add logical here
+
         return response()->json([
             'status' => 'success',
             'message' => 'Data created successfully',
@@ -93,6 +109,8 @@ class CampaignController extends Controller
 
     public function show(Request $request, $id)
     {
+        $this->triggerCampaignStatusBySystem();
+
         $data = new Campaign();
         // Include related data
         if ($request->query('include')) {
@@ -113,16 +131,25 @@ class CampaignController extends Controller
 
     public function update(Request $request, $id)
     {
+        $this->triggerCampaignStatusBySystem();
+
         $data = Campaign::find($id);
+        $field_campaign = $request->only((new Campaign())->getFillable());
         $field_campaign['id_user'] = null;
         unset($field_campaign['id_user']);
         if ($request->file('file_prospektus')) {
             $file_prospektus = $request->file('file_prospektus');
-            $path_of_file_prospektus = $file_prospektus->store('public/prospektus');
+            $original_name = $file_prospektus->getClientOriginalName();
+            $timestamp = now()->timestamp;
+            $new_file_name = $timestamp . '_' . $original_name;
+            $path_of_file_prospektus = $file_prospektus->storeAs('public/prospektus', $new_file_name);
             $prospektus_url = Storage::url($path_of_file_prospektus);
-            $field_user_image['prospektus_url'] = $prospektus_url;
+            $field_campaign['prospektus_url'] = $prospektus_url;
         }
         $data->update($field_campaign);
+
+        // add logical here
+        // TODO: add logical here
 
         return response()->json([
             'status' => 'success',
@@ -134,6 +161,8 @@ class CampaignController extends Controller
 
     public function destroy($id)
     {
+        $this->triggerCampaignStatusBySystem();
+
         $data = Campaign::find($id);
         $data->is_deleted = true;
         $data->save();
@@ -146,4 +175,40 @@ class CampaignController extends Controller
             'server_time' => (int) round(microtime(true) * 1000),
         ]);
     }
+
+
+    /**
+     * @return void
+     */
+    public function triggerCampaignStatusBySystem(): void
+    {
+        $campaigns = Campaign::all();
+
+        foreach ($campaigns as $campaign) {
+            $withdraw = Withdraw::where('id_campaign', $campaign->id)->first();
+
+            if (!isset($withdraw) && $campaign->target_funding_amount == $campaign->current_funding_amount || $campaign->max_sukuk == $campaign->sold_sukuk) {
+                $campaign->update([
+                    'status' => 'ACHIEVED',
+                    'updated_by' => 'system'
+                ]);
+            }
+
+            if (isset($withdraw) && $campaign->status == 'ACHIEVED' && ($withdraw->status == 'WAITING_VERIFICATION' || $withdraw->status == 'REJECTED')) {
+                $campaign->update([
+                    'status' => 'PROCESSED',
+                    'updated_by' => 'system'
+                ]);
+            }
+
+            if (isset($withdraw) && $campaign->status == 'PROCESSED' && $withdraw->status == 'APPROVED') {
+                $campaign->update([
+                    'status' => 'RUNNING',
+                    'updated_by' => 'system'
+                ]);
+            }
+        }
+    }
+
+
 }

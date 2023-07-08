@@ -3,6 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Seeder;
 
 return new class extends Migration
 {
@@ -21,8 +23,7 @@ return new class extends Migration
             $table->bigInteger('investor_amount')->nullable();
             $table->integer('sukuk')->nullable();
             $table->bigInteger('service_fee')->nullable();
-            $table->enum('status', ['WAITING_VERIFICATION', 'REJECTED', 'ACTIVE', 'ACHIEVED', 'PROCESSED', 'RUNNING', 'DONE'])->default('WAITING_VERIFICATION');
-            $table->bigInteger('profit')->nullable();
+            $table->enum('status', ['WAITING_VERIFICATION', 'REJECTED', 'APPROVED'])->default('WAITING_VERIFICATION');
             $table->string('created_by')->default('system');
             $table->string('updated_by')->default('system');
             $table->boolean('is_deleted')->default(false);
