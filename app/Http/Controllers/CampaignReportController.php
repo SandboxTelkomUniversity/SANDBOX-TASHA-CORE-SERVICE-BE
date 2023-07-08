@@ -90,7 +90,8 @@ class CampaignReportController extends Controller
         } else{
             return response()->json([
                 'status' => 'error',
-                'message' => 'The project has not started yet.'
+                'message' => 'The project has not started yet.',
+                'server_time' => (int) round(microtime(true) * 1000),
             ]);
         }
 
