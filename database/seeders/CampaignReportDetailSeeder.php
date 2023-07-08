@@ -14,6 +14,6 @@ class CampaignReportDetailSeeder extends Seeder
      */
     public function run()
     {
-        //
+        // TODO
     }
 }
