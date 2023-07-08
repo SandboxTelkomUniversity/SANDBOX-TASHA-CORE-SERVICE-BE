@@ -76,7 +76,7 @@ class PaymentController extends Controller
         $cicilanke = $sudahbayar + 1; 
 
         $reported = DB::table('campaign_reports')->where('id_campaign', $id_campaign)->where('is_exported', '1')->count();
-        return $sudahbayar;
+
         if ($status == "RUNNING" && $reported == $cicilanke) {
              $field_receipts = $request->only((new Receipt())->getFillable());
             if ($request->hasFile('file_receipt')) {
@@ -98,6 +98,11 @@ class PaymentController extends Controller
                 'message' => 'Data created successfully',
                 'data' => $data,
                 'server_time' => (int) round(microtime(true) * 1000),
+            ]);
+        }else{
+            return response()->json([
+                'status' => 'error',
+                'message' => 'lapor dulu'
             ]);
         }
 
