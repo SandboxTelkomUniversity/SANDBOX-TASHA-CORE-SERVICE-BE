@@ -15,6 +15,7 @@ class ReceiptSeeder extends Seeder
      */
     public function run()
     {
+        // Transaction : Campaign active
         DB::table('receipts')->insert([
             [
                 'id' => 'ee931aab-2b72-4df0-bef1-5e54afabdc4a',
@@ -38,7 +39,7 @@ class ReceiptSeeder extends Seeder
             ]
         ]);
 
-        // Campaign running
+        // Transaction : Campaign running
         DB::table('receipts')->insert([
             [
                 'id' => '7994d8f2-f5da-4796-99e1-cbb6a9f970bc',
@@ -62,7 +63,7 @@ class ReceiptSeeder extends Seeder
             ]
         ]);
 
-        // Campaign done
+        // Transaction : Campaign done
         DB::table('receipts')->insert([
             [
                 'id' => 'febe7a0b-14db-4967-bd25-701ff538616b',
@@ -76,6 +77,44 @@ class ReceiptSeeder extends Seeder
             ],
             [
                 'id' => '10c60b68-47eb-495b-831c-022fbf75c658',
+                'receipt_url' => 'https://assets-a1.kompasiana.com/items/album/2019/05/15/20190515-042338-5cdb370875065776065e29e6.jpg',
+                'updated_by' => 'system',
+                'created_by' => 'system',
+                'is_deleted' => 0,
+                'version' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        ]);
+
+        // Payment : Campaign Running
+        DB::table('receipts')->insert([
+            [
+                'id' => 'e37d60e8-90b6-4b95-a588-4dc94a0934cb',
+                'receipt_url' => 'https://assets-a1.kompasiana.com/items/album/2019/05/15/20190515-042338-5cdb370875065776065e29e6.jpg',
+                'updated_by' => 'system',
+                'created_by' => 'system',
+                'is_deleted' => 0,
+                'version' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        ]);
+
+        // Payment : Campaign Done
+        DB::table('receipts')->insert([
+            [
+                'id' => '36bf995f-c165-42c5-8cdb-5605d66baad7',
+                'receipt_url' => 'https://assets-a1.kompasiana.com/items/album/2019/05/15/20190515-042338-5cdb370875065776065e29e6.jpg',
+                'updated_by' => 'system',
+                'created_by' => 'system',
+                'is_deleted' => 0,
+                'version' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'id' => '7b1b20fa-8bca-45a6-9319-f42756bbc7de',
                 'receipt_url' => 'https://assets-a1.kompasiana.com/items/album/2019/05/15/20190515-042338-5cdb370875065776065e29e6.jpg',
                 'updated_by' => 'system',
                 'created_by' => 'system',
