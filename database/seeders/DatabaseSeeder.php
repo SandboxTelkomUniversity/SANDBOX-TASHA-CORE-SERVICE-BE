@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\CampaignReport;
 use Illuminate\Database\Seeder;
 
 
@@ -31,11 +32,14 @@ class DatabaseSeeder extends Seeder
             new PaymentSeeder(),
             new TransactionSeeder(),
             new WithdrawSeeder(),
+            new CampaignReportDetailSeeder(),
+            new CampaignReportSeeder(),
+            new CampaignReportGroupSeeder(),
         ];
-        
+
         foreach ($seeders as $seeder) {
             $seeder->run();
-        }        
+        }
 
     }
 }
