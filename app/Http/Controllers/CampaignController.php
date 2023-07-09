@@ -184,7 +184,7 @@ class CampaignController extends Controller
     /**
      * @return void
      */
-    public function triggerCampaignStatusBySystem(): void
+    public static function triggerCampaignStatusBySystem(): void
     {
         $campaigns = Campaign::all();
 
