@@ -138,11 +138,25 @@ class CampaignReportController extends Controller
             $file = public_path($data->document_url);
             $extension = pathinfo($file, PATHINFO_EXTENSION);
 
+            $delimiter = $this->detectDelimiter($file);
+
+            if (!$delimiter) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unsupported delimiter',
+                    'server_time' => (int) round(microtime(true) * 1000),
+                ], 422);
+            }
+
+            $data_of_campaign_report_detail = [];
+
             if ($extension === 'xlsx') {
                 $import = new CampaignReportDetailImport();
                 $data_of_campaign_report_detail = Excel::toArray($import, $file);
             } elseif ($extension === 'csv') {
-                $data_of_campaign_report_detail = array_map('str_getcsv', file($file));
+                $data_of_campaign_report_detail = array_map(function ($row) use ($delimiter) {
+                    return str_getcsv($row, $delimiter);
+                }, file($file));
                 array_shift($data_of_campaign_report_detail); // Remove header row
             } else {
                 return response()->json([
@@ -175,6 +189,24 @@ class CampaignReportController extends Controller
             'server_time' => (int) round(microtime(true) * 1000),
         ]);
     }
+
+    private function detectDelimiter($file)
+    {
+        $delimiters = [',', ';', "\t", '|'];
+        $handle = fopen($file, 'r');
+        $firstLine = fgets($handle);
+        fclose($handle);
+
+        foreach ($delimiters as $delimiter) {
+            $count = count(str_getcsv($firstLine, $delimiter));
+            if ($count > 1) {
+                return $delimiter;
+            }
+        }
+
+        return false;
+    }
+
 
 
     public function destroy($id)
