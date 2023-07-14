@@ -281,12 +281,14 @@ Route::group(['prefix' => "$version/campaign-banner"], function ($router) {
 Route::group(['prefix' => "$version/payment"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
         $router->get('', [PaymentController::class, 'index']);
+        $router->get('with-campaign', [PaymentController::class, 'paymentwithcampaign']);
         $router->get('/{id}', [PaymentController::class, 'show']);
         $router->post('', [PaymentController::class, 'store']);
         $router->post('{id}', [PaymentController::class, 'update']);
         $router->delete('{id}', [PaymentController::class, 'destroy']);
     });
 });
+
 
 
 // dashboard
