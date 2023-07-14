@@ -215,6 +215,7 @@ Route::group(['prefix' => "$version/withdraw"], function ($router) {
 Route::group(['prefix' => "$version/campaign"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
         $router->get('', [CampaignController::class, 'index']);
+        $router->get('total-investor', [CampaignController::class, 'index_total_investor']);
         $router->get('/{id}', [CampaignController::class, 'show']);
         $router->post('', [CampaignController::class, 'store']);
         $router->post('{id}', [CampaignController::class, 'update']);

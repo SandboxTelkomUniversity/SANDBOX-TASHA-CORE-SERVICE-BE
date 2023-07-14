@@ -7,6 +7,7 @@ use App\Models\Campaign;
 use App\Models\CampaignBanner;
 use App\Models\CampaignReport;
 use App\Models\Payment;
+use App\Models\Transaction;
 use App\Models\Withdraw;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -55,6 +56,49 @@ class CampaignController extends Controller
         ]);
     }
 
+    public function index_total_investor(Request $request){
+        $this->triggerCampaignStatusBySystem();
+
+        $current_page = $request->query('current_page', 1);
+        $data = new Campaign;
+
+        // Apply filters
+        $fillable_column = (new Campaign())->getFillable();
+        foreach ($fillable_column as $column) {
+            if ($request->query($column)) {
+                $data = $data->where($column, 'like', '%' . $request->query($column) . '%');
+            }
+        }
+
+        // Include related data
+        if ($request->query('include')) {
+            $includes = $request->query('include');
+            foreach ($includes as $include) {
+                $data = $data->with($include);
+            }
+        }
+
+        // Apply is_active condition and paginate
+        $data = $data->where('is_deleted', false)->paginate(10, ['*'], 'page', $current_page);
+
+        // Retrieve total_investor data for each Campaign
+        foreach ($data as $campaign) {
+            $campaign->total_investor = Transaction::where('id_campaign', $campaign->id)
+                ->where('status', 'APPROVED')
+                ->count();
+        }
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $data->items(),
+            'meta' => [
+                'current_page' => $data->currentPage(),
+                'last_page' => $data->lastPage(),
+                'total_records' => $data->total(),
+            ],
+            'server_time' => (int) round(microtime(true) * 1000),
+        ]);
+    }
     public function store(Request $request)
     {
         $this->triggerCampaignStatusBySystem();
