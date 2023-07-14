@@ -284,7 +284,7 @@ Route::group(['prefix' => "$version/payment"], function ($router) {
         $router->get('/{id}', [PaymentController::class, 'show']);
         $router->post('', [PaymentController::class, 'store']);
         $router->post('{id}', [PaymentController::class, 'update']);
-        $router->post('', [PaymentController::class, 'DoPayment']);
+        $router->post('DoPayment', [PaymentController::class, 'DoPayment']);
         $router->delete('{id}', [PaymentController::class, 'destroy']);
     });
 });
