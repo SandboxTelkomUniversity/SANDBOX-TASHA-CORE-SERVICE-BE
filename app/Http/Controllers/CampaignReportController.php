@@ -76,7 +76,7 @@ class CampaignReportController extends Controller
             $file_document = $request->file('file_document');
             $original_name = $file_document->getClientOriginalName();
             $timestamp = now()->timestamp;
-            $new_file_name = $timestamp . '_' . $original_name;
+            $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores
             $path_of_file_document = $file_document->storeAs('public/document', $new_file_name);
             $document_url = Storage::url($path_of_file_document);
             $field_campaign_reports['document_url'] = $document_url;
@@ -125,7 +125,7 @@ class CampaignReportController extends Controller
             $file_document = $request->file('file_document');
             $original_name = $file_document->getClientOriginalName();
             $timestamp = now()->timestamp;
-            $new_file_name = $timestamp . '_' . $original_name;
+            $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores
             $path_of_file_document = $file_document->storeAs('public/document', $new_file_name);
             $document_url = Storage::url($path_of_file_document);
             $field_campaign_reports['document_url'] = $document_url;

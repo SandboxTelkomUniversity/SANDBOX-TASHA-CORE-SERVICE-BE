@@ -57,7 +57,7 @@ class TransactionController extends Controller
             $file_receipt = $request->file('file_receipt');
             $original_name = $file_receipt->getClientOriginalName();
             $timestamp = now()->timestamp;
-            $new_file_name = $timestamp . '_' . $original_name;
+            $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores;
             $path_of_file_receipt = $file_receipt->storeAs('public/receipt', $new_file_name);
             $receipt_url = Storage::url($path_of_file_receipt);
             $field_receipts['receipt_url'] = $receipt_url;
@@ -110,7 +110,7 @@ class TransactionController extends Controller
             $file_receipt = $request->file('file_receipt');
             $original_name = $file_receipt->getClientOriginalName();
             $timestamp = now()->timestamp;
-            $new_file_name = $timestamp . '_' . $original_name;
+            $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores;
             $path_of_file_receipt = $file_receipt->storeAs('public/receipt', $new_file_name);
             $receipt_url = Storage::url($path_of_file_receipt);
             $field_receipts['receipt_url'] = $receipt_url;
