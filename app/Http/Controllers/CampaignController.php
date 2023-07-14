@@ -57,7 +57,6 @@ class CampaignController extends Controller
 
     public function store(Request $request)
     {
-
         $this->triggerCampaignStatusBySystem();
 
         // create campaign
@@ -67,7 +66,7 @@ class CampaignController extends Controller
             $file_prospektus = $request->file('file_prospektus');
             $original_name = $file_prospektus->getClientOriginalName();
             $timestamp = now()->timestamp;
-            $new_file_name = $timestamp . '_' . $original_name;
+            $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores
             $path_of_file_prospektus = $file_prospektus->storeAs('public/prospektus', $new_file_name);
             $prospektus_url = Storage::url($path_of_file_prospektus);
             $field_campaign['prospektus_url'] = $prospektus_url;
@@ -83,7 +82,7 @@ class CampaignController extends Controller
                 $file_banner = $array_file_banner[$i];
                 $original_name = $file_banner->getClientOriginalName();
                 $timestamp = now()->timestamp;
-                $new_file_name = $timestamp . '_' . $original_name;
+                $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores
                 $path_of_file_banner = $file_banner->storeAs('public/banner', $new_file_name);
                 $banner_url = Storage::url($path_of_file_banner);
                 $field_banner['name'] = $banner_name ? $banner_name : $original_name;
@@ -135,7 +134,6 @@ class CampaignController extends Controller
 
     public function update(Request $request, $id)
     {
-
         $this->triggerCampaignStatusBySystem();
 
         $data = Campaign::find($id);
@@ -146,7 +144,7 @@ class CampaignController extends Controller
             $file_prospektus = $request->file('file_prospektus');
             $original_name = $file_prospektus->getClientOriginalName();
             $timestamp = now()->timestamp;
-            $new_file_name = $timestamp . '_' . $original_name;
+            $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores
             $path_of_file_prospektus = $file_prospektus->storeAs('public/prospektus', $new_file_name);
             $prospektus_url = Storage::url($path_of_file_prospektus);
             $field_campaign['prospektus_url'] = $prospektus_url;

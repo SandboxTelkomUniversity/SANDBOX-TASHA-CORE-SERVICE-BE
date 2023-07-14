@@ -64,7 +64,7 @@ class UserBusinessController extends Controller
             $file_certificate = $request->file('file_certificate');
             $original_name = $file_certificate->getClientOriginalName();
             $timestamp = now()->timestamp;
-            $new_file_name = $timestamp . '_' . $original_name;
+            $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores
             $path_of_file_certificate = $file_certificate->storeAs('public/certificate', $new_file_name);
             $certificate_url = Storage::url($path_of_file_certificate);
             $field_user_business['certificate_url'] = $certificate_url;
@@ -95,7 +95,7 @@ class UserBusinessController extends Controller
             $file_certificate = $request->file('file_certificate');
             $original_name = $file_certificate->getClientOriginalName();
             $timestamp = now()->timestamp;
-            $new_file_name = $timestamp . '_' . $original_name;
+            $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores
             $path_of_file_certificate = $file_certificate->storeAs('public/certificate', $new_file_name);
             $certificate_url = Storage::url($path_of_file_certificate);
             $field_user_business['certificate_url'] = $certificate_url;
