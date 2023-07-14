@@ -291,7 +291,7 @@ Route::group(['prefix' => "$version/payment"], function ($router) {
 
 // dashboard
 Route::group(['prefix' => "$version/dashboard"], function ($router){
-    Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
+    Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
         $router->get('', [DashboardController::class, 'index']);
     });
 });
