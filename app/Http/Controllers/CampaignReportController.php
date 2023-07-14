@@ -94,7 +94,6 @@ class CampaignReportController extends Controller
                 'message' => 'The project has not started yet.'
             ]);
         }
-
     }
 
     public function show(Request $request, $id)

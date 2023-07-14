@@ -231,6 +231,7 @@ Route::group(['prefix' => "$version/transaction"], function ($router) {
         $router->post('', [TransactionController::class, 'store']);
         $router->post('{id}', [TransactionController::class, 'update']);
         $router->delete('{id}', [TransactionController::class, 'destroy']);
+        $router->get('portofolio/{id}', [TransactionController::class, 'show_portofolio']);
     });
 });
 

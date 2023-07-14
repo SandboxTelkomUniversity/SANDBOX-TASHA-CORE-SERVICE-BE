@@ -137,7 +137,6 @@ class TransactionController extends Controller
         ]);
     }
 
-
     public function destroy($id)
     {
         CampaignController::triggerCampaignStatusBySystem();
@@ -153,4 +152,33 @@ class TransactionController extends Controller
             'server_time' => (int) round(microtime(true) * 1000),
         ]);
     }
-}
+
+    public function show_portofolio($id) {
+        CampaignController::triggerCampaignStatusBySystem();
+        $transaction = Transaction::find($id);
+        
+        $data = Transaction::join('campaign_banners', 'transactions.id_campaign', '=', 'campaign_banners.id')
+            ->join('banners', 'campaign_banners.id_banner', '=', 'banners.id')
+            ->where('transactions.id', $transaction->id)
+            ->first();
+    
+        return $data;
+    }
+
+        // // Include related data
+        // if ($request->query('include')) {
+        //     $includes = $request->query('include');
+        //     foreach ($includes as $include) {
+        //         $data = $data->with($include);
+        //     }
+        // }
+
+        // $data = $data->find($id);
+
+        // return response()->json([
+        //     'status' => 'success',
+        //     'message' => 'Data retrieved successfully',
+        //     'data' => $data,
+        // ]);
+    }
+
