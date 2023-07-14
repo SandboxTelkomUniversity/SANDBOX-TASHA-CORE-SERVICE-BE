@@ -53,7 +53,7 @@ class BannerController extends Controller
             $file_banner = $request->file('file_banner');
             $original_name = $file_banner->getClientOriginalName();
             $timestamp = now()->timestamp;
-            $new_file_name = $timestamp . '_' . $original_name;
+            $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores
             $path_of_file_banner = $file_banner->storeAs('public/banner', $new_file_name);
             $banner_url = Storage::url($path_of_file_banner);
             $field_banners['url'] = $banner_url;
@@ -95,7 +95,7 @@ class BannerController extends Controller
             $file_banner = $request->file('file_banner');
             $original_name = $file_banner->getClientOriginalName();
             $timestamp = now()->timestamp;
-            $new_file_name = $timestamp . '_' . $original_name;
+            $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores
             $path_of_file_banner = $file_banner->storeAs('public/banner', $new_file_name);
             $banner_url = Storage::url($path_of_file_banner);
             $field_banners['url'] = $banner_url;

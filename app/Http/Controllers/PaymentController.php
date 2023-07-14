@@ -73,7 +73,7 @@ class PaymentController extends Controller
                         ->whereNotNull('payments.amount')
                         ->count();
 
-        $cicilanke = $sudahbayar + 1; 
+        $cicilanke = $sudahbayar + 1;
 
         $reported = DB::table('campaign_reports')->where('id_campaign', $id_campaign)->where('is_exported', '1')->count();
 
@@ -83,7 +83,7 @@ class PaymentController extends Controller
                 $file_receipt = $request->file('file_receipt');
                 $original_name = $file_receipt->getClientOriginalName();
                 $timestamp = now()->timestamp;
-                $new_file_name = $timestamp . '_' . $original_name;
+                $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores
                 $path_of_file_receipt = $file_receipt->storeAs('public/receipt', $new_file_name);
                 $receipt_url = Storage::url($path_of_file_receipt);
                 $field_receipts['receipt_url'] = $receipt_url;
@@ -106,7 +106,7 @@ class PaymentController extends Controller
             ]);
         }
 
-        
+
     }
 
     public function show(Request $request, $id)
@@ -140,7 +140,7 @@ class PaymentController extends Controller
                 $file_receipt = $request->file('file_receipt');
                 $original_name = $file_receipt->getClientOriginalName();
                 $timestamp = now()->timestamp;
-                $new_file_name = $timestamp . '_' . $original_name;
+                $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores
                 $path_of_file_receipt = $file_receipt->storeAs('public/receipt', $new_file_name);
                 $receipt_url = Storage::url($path_of_file_receipt);
                 $field_receipts['receipt_url'] = $receipt_url;
