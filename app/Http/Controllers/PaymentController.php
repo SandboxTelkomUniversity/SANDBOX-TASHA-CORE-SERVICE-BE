@@ -165,7 +165,7 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function DoPayment(Request $request)
+    public function do_payment(Request $request)
     {
         $id_campaign = $request->id_campaign;
         $status = DB::table('campaigns')->where('id', $id_campaign)->value('status');
