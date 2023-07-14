@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Receipt;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
@@ -44,7 +45,7 @@ class TransactionController extends Controller
                 'last_page' => $data->lastPage(),
                 'total_records' => $data->total(),
             ],
-            'server_time' => (int) round(microtime(true) * 1000),
+            'server_time' => (int)round(microtime(true) * 1000),
         ]);
     }
 
@@ -76,7 +77,7 @@ class TransactionController extends Controller
             'status' => 'success',
             'message' => 'Data created successfully',
             'data' => $data,
-            'server_time' => (int) round(microtime(true) * 1000),
+            'server_time' => (int)round(microtime(true) * 1000),
         ]);
     }
 
@@ -133,7 +134,7 @@ class TransactionController extends Controller
             'status' => 'success',
             'message' => 'Data updated successfully',
             'data' => $data,
-            'server_time' => (int) round(microtime(true) * 1000),
+            'server_time' => (int)round(microtime(true) * 1000),
         ]);
     }
 
@@ -149,36 +150,40 @@ class TransactionController extends Controller
             'status' => 'success',
             'message' => 'Data deleted successfully',
             'data' => $data,
-            'server_time' => (int) round(microtime(true) * 1000),
+            'server_time' => (int)round(microtime(true) * 1000),
         ]);
     }
 
-    public function show_portofolio($id) {
+    public function show_portfolio(Request $request)
+    {
         CampaignController::triggerCampaignStatusBySystem();
-        $transaction = Transaction::find($id);
-        
-        $data = Transaction::join('campaign_banners', 'transactions.id_campaign', '=', 'campaign_banners.id')
-            ->join('banners', 'campaign_banners.id_banner', '=', 'banners.id')
-            ->where('transactions.id', $transaction->id)
-            ->first();
-    
-        return $data;
+        $current_page = $request->query('current_page', 1);
+        $data = Transaction::where('id_user', $request->user()->id);
+
+        // Apply filters
+        $fillable_columns = (new Transaction())->getFillable();
+        foreach ($fillable_columns as $column) {
+            if ($request->query($column)) {
+                $data = $data->where($column, 'like', '%' . $request->query($column) . '%');
+            }
+        }
+
+        // Include related data (campaign with banner)
+        $data = $data->with('campaign.banners');
+
+        // Apply is_active condition and paginate
+        $data = $data->where('is_deleted', false)->paginate(10, ['*'], 'page', $current_page);
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $data->items(),
+            'meta' => [
+                'current_page' => $data->currentPage(),
+                'last_page' => $data->lastPage(),
+                'total_records' => $data->total(),
+            ],
+            'server_time' => (int)round(microtime(true) * 1000),
+        ]);
     }
-
-        // // Include related data
-        // if ($request->query('include')) {
-        //     $includes = $request->query('include');
-        //     foreach ($includes as $include) {
-        //         $data = $data->with($include);
-        //     }
-        // }
-
-        // $data = $data->find($id);
-
-        // return response()->json([
-        //     'status' => 'success',
-        //     'message' => 'Data retrieved successfully',
-        //     'data' => $data,
-        // ]);
-    }
+}
 
