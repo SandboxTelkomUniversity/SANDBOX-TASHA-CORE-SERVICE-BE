@@ -280,6 +280,7 @@ Route::group(['prefix' => "$version/campaign-banner"], function ($router) {
 // payment
 Route::group(['prefix' => "$version/payment"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
+        $router->post('do-payment', [PaymentController::class, 'do_payment']);
         $router->get('', [PaymentController::class, 'index']);
         $router->get('with-campaign', [PaymentController::class, 'paymentwithcampaign']);
         $router->get('/{id}', [PaymentController::class, 'show']);

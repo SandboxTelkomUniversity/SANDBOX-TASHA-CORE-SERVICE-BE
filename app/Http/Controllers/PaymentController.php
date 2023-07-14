@@ -62,19 +62,6 @@ class PaymentController extends Controller
         ]);
     }
 
-    function JatuhTempo()
-    {
-        $sudahbayar = DB::table('campaign_reports')
-            ->join('payments', 'campaign_reports.id_payment', '=', 'payments.id')
-            ->select('campaign_reports.is_exported', 'payments.status', 'payments.amount')
-            ->where('campaign_reports.is_exported', '1')
-            ->where('payments.status', 'APPROVED')
-            ->whereNotNull('payments.amount')
-            ->count();
-
-        $cicilanke = $sudahbayar + 1;
-    }
-
     public function store(Request $request)
     {
         $id_campaign = $request->id_campaign;
@@ -188,6 +175,7 @@ class PaymentController extends Controller
                         ->join('payments', 'campaign_reports.id_payment', '=', 'payments.id')
                         ->select('campaign_reports.is_exported', 'payments.status', 'payments.amount')
                         ->where('campaign_reports.is_exported', '1')
+                        ->where('campaign_reports.id_campaign', $id_campaign)
                         ->where('payments.status', 'APPROVED')
                         ->whereNotNull('payments.amount')
                         ->count();
@@ -199,6 +187,7 @@ class PaymentController extends Controller
         $id_payment = DB::table('campaign_reports')
                         ->join('payments', 'campaign_reports.id_payment', '=', 'payments.id')
                         ->select('campaign_reports.id_payment')
+                        ->where('campaign_reports.id_campaign', $id_campaign)
                         ->where('campaign_reports.is_exported', '1')
                         ->where('payments.status', 'WAITING_VERIFICATION')
                         ->whereNull('payments.amount')
@@ -207,11 +196,12 @@ class PaymentController extends Controller
         $notpayedyet = DB::table('campaign_reports')
                         ->join('payments', 'campaign_reports.id_payment', '=', 'payments.id')
                         ->select('campaign_reports.id_payment')
+                        ->where('campaign_reports.id_campaign', $id_campaign)
                         ->where('campaign_reports.is_exported', '1')
                         ->where('payments.status', 'WAITING_VERIFICATION')
                         ->whereNull('payments.amount')
                         ->count();
-
+                        
         $data = Payment::find($id_payment);
         if ($notpayedyet == 1) {
             if ($status == "RUNNING" && $reported == $installment) {
