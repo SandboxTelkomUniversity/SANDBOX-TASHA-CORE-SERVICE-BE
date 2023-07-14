@@ -13,7 +13,6 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
             'email' => 'required|string|email',
             'password' => 'required|string',
@@ -42,18 +41,27 @@ class AuthController extends Controller
         }
 
         $user = Auth::user();
+
+        if ($user->is_deleted == 1) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Cannot log in. Your account has been deleted.',
+                'server_time' => (int) round(microtime(true) * 1000),
+            ], 403);
+        }
+
         // Add verified value to the user
         UserController::addVerifiedValueToTheData($user);
-        return response()->json([
-                'status' => 'success',
-                'user' => $user,
-                'authorization' => [
-                    'token' => $token,
-                    'type' => 'bearer',
-                ],
-            'server_time' => (int) round(microtime(true) * 1000),
-            ]);
 
+        return response()->json([
+            'status' => 'success',
+            'user' => $user,
+            'authorization' => [
+                'token' => $token,
+                'type' => 'bearer',
+            ],
+            'server_time' => (int) round(microtime(true) * 1000),
+        ]);
     }
 
     public function logout()
