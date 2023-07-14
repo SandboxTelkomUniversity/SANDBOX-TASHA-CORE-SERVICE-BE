@@ -95,7 +95,6 @@ class CampaignReportController extends Controller
                 'server_time' => (int) round(microtime(true) * 1000),
             ]);
         }
-
     }
 
     public function show(Request $request, $id)
