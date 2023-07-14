@@ -47,15 +47,30 @@ class PaymentController extends Controller
         ]);
     }
 
+    public function paymentwithcampaign(Request $request)
+    {
+        $data = DB::table('campaign_reports')
+            ->join('payments', 'campaign_reports.id_payment', '=', 'payments.id')
+            ->join('campaigns', 'campaign_reports.id_campaign', '=', 'campaigns.id')
+            ->select('campaigns.name', 'payments.id', 'payments.id_user', 'payments.id_receipt', 'payments.amount', 'payments.status', 'payments.created_by', 'payments.updated_by', 'payments.is_deleted', 'payments.version', 'payments.created_at', 'payments.updated_at')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $data,
+            'server_time' => (int) round(microtime(true) * 1000),
+        ]);
+    }
+
     function JatuhTempo()
     {
         $sudahbayar = DB::table('campaign_reports')
-                        ->join('payments', 'campaign_reports.id_payment', '=', 'payments.id')
-                        ->select('campaign_reports.is_exported', 'payments.status', 'payments.amount')
-                        ->where('campaign_reports.is_exported', '1')
-                        ->where('payments.status', 'APPROVED')
-                        ->whereNotNull('payments.amount')
-                        ->count();
+            ->join('payments', 'campaign_reports.id_payment', '=', 'payments.id')
+            ->select('campaign_reports.is_exported', 'payments.status', 'payments.amount')
+            ->where('campaign_reports.is_exported', '1')
+            ->where('payments.status', 'APPROVED')
+            ->whereNotNull('payments.amount')
+            ->count();
 
         $cicilanke = $sudahbayar + 1;
     }
@@ -66,19 +81,19 @@ class PaymentController extends Controller
         $status = DB::table('campaigns')->where('id', $id_campaign)->value('status');
 
         $sudahbayar = DB::table('campaign_reports')
-                        ->join('payments', 'campaign_reports.id_payment', '=', 'payments.id')
-                        ->select('campaign_reports.is_exported', 'payments.status', 'payments.amount')
-                        ->where('campaign_reports.is_exported', '1')
-                        ->where('payments.status', 'APPROVED')
-                        ->whereNotNull('payments.amount')
-                        ->count();
+            ->join('payments', 'campaign_reports.id_payment', '=', 'payments.id')
+            ->select('campaign_reports.is_exported', 'payments.status', 'payments.amount')
+            ->where('campaign_reports.is_exported', '1')
+            ->where('payments.status', 'APPROVED')
+            ->whereNotNull('payments.amount')
+            ->count();
 
         $cicilanke = $sudahbayar + 1;
 
         $reported = DB::table('campaign_reports')->where('id_campaign', $id_campaign)->where('is_exported', '1')->count();
 
         if ($status == "RUNNING" && $reported == $cicilanke) {
-             $field_receipts = $request->only((new Receipt())->getFillable());
+            $field_receipts = $request->only((new Receipt())->getFillable());
             if ($request->hasFile('file_receipt')) {
                 $file_receipt = $request->file('file_receipt');
                 $original_name = $file_receipt->getClientOriginalName();
@@ -99,13 +114,12 @@ class PaymentController extends Controller
                 'data' => $data,
                 'server_time' => (int) round(microtime(true) * 1000),
             ]);
-        }else{
+        } else {
             return response()->json([
                 'status' => 'error',
                 'message' => 'lapor dulu'
             ]);
         }
-
 
     }
 
