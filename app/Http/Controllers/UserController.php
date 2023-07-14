@@ -354,8 +354,9 @@ class UserController extends Controller
             $data->user_active->update(['user_business' => 0]);
         }
 
-        // update user business
-        $data->user_business->update($field_user_bussiness);
+        if ($data->user_business) {
+            $data->user_business->update($field_user_bussiness);
+        }
 
         // Update user heir
         $field_user_heir = $request->only((new UserHeir)->getFillable());
