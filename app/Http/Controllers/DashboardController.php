@@ -24,7 +24,7 @@ class DashboardController extends Controller
         ];
 
         if ($authorization_level == 1) {
-            $response['data']['total_asset'] = 1;
+            $response['data']['total_asset'] = 3500000;
             $response['data']['campaigns'] = Campaign::where('status', 'ACTIVE')->limit(5)->get();
 
             $apiKey = '2094e9cb485e4145b44c2b9fc7c82620';

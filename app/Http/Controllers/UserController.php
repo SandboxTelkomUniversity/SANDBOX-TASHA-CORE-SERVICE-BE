@@ -373,7 +373,9 @@ class UserController extends Controller
             $field_user_heir['address'] = $request->user_heir_address;
         }
 
-        $data->user_heir->update($field_user_heir);
+        if($data->user_heir){
+            $data->user_heir->update($field_user_heir);
+        }
 
         // update user image
         $field_user_image = $request->only((new UserImage)->getFillable());

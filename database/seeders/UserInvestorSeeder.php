@@ -22,7 +22,7 @@ class UserInvestorSeeder extends Seeder
             'id_user_business' => null,
             'id_user_heir' => "aa1f2bbc-85f9-41ef-94ed-bae849beb5e3",
             'id_user_image' => "d454b3e1-4f79-4e4d-86f6-743435da83a5",
-            'full_name' => 'Pulu Pulu',
+            'full_name' => 'Investor',
             'date_of_birth' => '1990-01-01',
             'gender' => 'M',
             'address' => 'Address A',
