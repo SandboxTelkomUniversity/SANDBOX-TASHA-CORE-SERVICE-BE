@@ -52,6 +52,7 @@ class PaymentController extends Controller
         $data = DB::table('campaign_reports')
             ->join('payments', 'campaign_reports.id_payment', '=', 'payments.id')
             ->join('campaigns', 'campaign_reports.id_campaign', '=', 'campaigns.id')
+            ->where('payments.id_user', $request->id_user)
             ->select('campaigns.name', 'payments.id', 'payments.id_user', 'payments.id_receipt', 'payments.amount', 'payments.status', 'payments.created_by', 'payments.updated_by', 'payments.is_deleted', 'payments.version', 'payments.created_at', 'payments.updated_at')
             ->get();
 
