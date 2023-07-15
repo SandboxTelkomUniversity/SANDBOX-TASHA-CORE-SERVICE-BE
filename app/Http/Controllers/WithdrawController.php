@@ -126,7 +126,7 @@ class WithdrawController extends Controller
             ->join('users', 'campaigns.id_user', '=', 'users.id')
             ->join('user_banks', 'users.id_user_bank', '=', 'user_banks.id')
             ->where('campaigns.id', $id)
-            ->select('campaigns.name', 'campaigns.start_date', 'campaigns.closing_date', 'campaigns.type', 'campaigns.category', 'campaigns.target_funding_amount', 'campaigns.status', 'users.full_name', 'user_banks.bank_name', 'user_banks.account_number')
+            ->select('campaigns.id','campaigns.name', 'campaigns.start_date', 'campaigns.closing_date', 'campaigns.type', 'campaigns.category', 'campaigns.target_funding_amount', 'campaigns.status', 'users.full_name', 'user_banks.bank_name', 'user_banks.account_number')
             ->get();
 
         return response()->json([
