@@ -47,7 +47,7 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function paymentwithcampaign(Request $request)
+    public function payment_with_campaign(Request $request)
     {
         $data = DB::table('campaign_reports')
             ->join('payments', 'campaign_reports.id_payment', '=', 'payments.id')
@@ -180,7 +180,7 @@ class PaymentController extends Controller
                         ->whereNotNull('payments.amount')
                         ->count();
 
-        $installment = $payed + 1; 
+        $installment = $payed + 1;
 
         $reported = DB::table('campaign_reports')->where('id_campaign', $id_campaign)->where('is_exported', '1')->count();
 
@@ -201,34 +201,34 @@ class PaymentController extends Controller
                         ->where('payments.status', 'WAITING_VERIFICATION')
                         ->whereNull('payments.amount')
                         ->count();
-                        
+
         $data = Payment::find($id_payment);
         if ($notpayedyet == 1) {
             if ($status == "RUNNING" && $reported == $installment) {
                 if ($data->receipt) {
                     $field_receipts = $request->only((new Receipt())->getFillable());
-        
+
                     if ($request->hasFile('file_receipt')) {
                         $file_receipt = $request->file('file_receipt');
                         $original_name = $file_receipt->getClientOriginalName();
                         $timestamp = now()->timestamp;
-                        $new_file_name = $timestamp . '_' . $original_name;
+                        $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores;
                         $path_of_file_receipt = $file_receipt->storeAs('public/receipt', $new_file_name);
                         $receipt_url = Storage::url($path_of_file_receipt);
                         $field_receipts['receipt_url'] = $receipt_url;
                     }
-        
+
                     $field_payment = $request->only((new Payment())->getFillable());
                     $field_payment['id_user'] = null;
                     $field_payment['id_receipt'] = null;
                     unset($field_payment['id_user']);
                     unset($field_payment['id_receipt']);
-        
+
                     $data->receipt->update($field_receipts);
                 }
-        
+
                 $data->update($field_payment);
-        
+
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Data updated successfully',
@@ -243,7 +243,7 @@ class PaymentController extends Controller
                 ]);
             }
         }
-        
+
         else{
             return response()->json([
                 'status' => 'error',
