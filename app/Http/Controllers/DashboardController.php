@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Campaign;
 use App\Models\CampaignReport;
+use App\Models\Payment;
 use App\Models\Transaction;
 use App\Models\User;
 use App\Models\UserActive;
@@ -28,18 +29,35 @@ class DashboardController extends Controller
             $response['data']['campaigns'] = Campaign::where('status', 'ACTIVE')->limit(5)->get();
 
             $apiKey = '2094e9cb485e4145b44c2b9fc7c82620';
-            $queryParams = http_build_query([
-                'apiKey' => $apiKey,
-                'country' => 'id',
-                'category' => 'business',
-                'q' => 'invest',
-                'page' => 1,
-            ]);
+            $apiUrl = 'https://newsapi.org/v2/top-headlines';
+            $country = 'id';
+            $category = 'business';
+            $query = 'invest';
+            $page = 1;
 
-            $newsUrl = 'https://newsapi.org/v2/top-headlines?' . $queryParams;
+            $newsUrl = $apiUrl . '?apiKey=' . $apiKey . '&country=' . $country . '&category=' . $category . '&q=' . $query . '&page=' . $page;
 
             try {
-                $newsData = json_decode(@file_get_contents($newsUrl), true);
+                $curl = curl_init();
+
+                curl_setopt_array($curl, [
+                    CURLOPT_URL => $newsUrl,
+                    CURLOPT_RETURNTRANSFER => true,
+                    CURLOPT_FOLLOWLOCATION => true,
+                    CURLOPT_HTTPHEADER => [
+                        'Content-Type: application/json',
+                    ],
+                ]);
+
+                $newsData = curl_exec($curl);
+
+                if ($newsData === false) {
+                    throw new \Exception(curl_error($curl), curl_errno($curl));
+                }
+
+                curl_close($curl);
+
+                $newsData = json_decode($newsData, true);
 
                 $response['data']['news'] = [
                     'error' => null,
@@ -58,7 +76,7 @@ class DashboardController extends Controller
 
             $response['data']['total_campaign'] = $userCampaigns->count();
             $response['data']['total_campaign_report'] = CampaignReport::whereIn('id_campaign', $userCampaigns)->count();
-            $response['data']['total_payment'] = CampaignReport::whereIn('id_campaign', $userCampaigns)->where('is_exported', 0)->count();
+            $response['data']['total_payment'] = Payment::where('id_user', $user->id)->count();
             $response['data']['total_withdraw'] = Withdraw::where('id_user', $user->id)->count();
             $response['data']['campaigns'] = Campaign::where('id_user', $user->id)
                 ->with('banners')
