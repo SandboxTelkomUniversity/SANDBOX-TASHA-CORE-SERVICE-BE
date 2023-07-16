@@ -203,6 +203,7 @@ Route::group(['prefix' => "$version/receipt"], function ($router) {
 // withdraw
 Route::group(['prefix' => "$version/withdraw"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
+        $router->get('detail/{id}', [WithdrawController::class, 'detail_withdraw']);
         $router->get('', [WithdrawController::class, 'index']);
         $router->get('/{id}', [WithdrawController::class, 'show']);
         $router->post('', [WithdrawController::class, 'store']);
