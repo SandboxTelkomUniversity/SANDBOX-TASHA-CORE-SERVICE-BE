@@ -76,7 +76,11 @@ class DashboardController extends Controller
 
             $response['data']['total_campaign'] = $userCampaigns->count();
             $response['data']['total_campaign_report'] = CampaignReport::whereIn('id_campaign', $userCampaigns)->count();
-            $response['data']['total_payment'] = Payment::where('id_user', $user->id)->count();
+            $response['data']['total_payment'] = Payment::where('id_user', $user->id)
+                ->where('status', '!=', 0)
+                ->whereNotNull('status')
+                ->where('status', '<>', '')
+                ->count();
             $response['data']['total_withdraw'] = Withdraw::where('id_user', $user->id)->count();
             $response['data']['campaigns'] = Campaign::where('id_user', $user->id)
                 ->with('banners')
