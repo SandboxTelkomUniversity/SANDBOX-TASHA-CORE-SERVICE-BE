@@ -31,7 +31,7 @@ class UserBankController extends Controller
         }
 
         // Apply is_active condition and paginate
-        $data = $data->where('is_deleted', false)->paginate(10, ['*'], 'page', $current_page);
+        $data = $data->where('is_deleted', false)->paginate(20, ['*'], 'page', $current_page);
 
         return response()->json([
             'status' => 'success',
