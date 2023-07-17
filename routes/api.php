@@ -231,7 +231,7 @@ Route::group(['prefix' => "$version/transaction"], function ($router) {
         $router->get('', [TransactionController::class, 'index']);
         $router->get('/{id}', [TransactionController::class, 'show']);
         $router->post('', [TransactionController::class, 'store']);
-        $router->post('{id}', [TransactionController::class, 'update']);
+        $router->post('{id}', [TransactionController::class, 'transaction_approval']);
         $router->delete('{id}', [TransactionController::class, 'destroy']);
     });
 });
