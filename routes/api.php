@@ -215,6 +215,7 @@ Route::group(['prefix' => "$version/withdraw"], function ($router) {
 Route::group(['prefix' => "$version/campaign"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
         $router->get('', [CampaignController::class, 'index']);
+        $router->get('total-investor', [CampaignController::class, 'index_total_investor']);
         $router->get('/{id}', [CampaignController::class, 'show']);
         $router->post('', [CampaignController::class, 'store']);
         $router->post('{id}', [CampaignController::class, 'update']);
@@ -225,6 +226,7 @@ Route::group(['prefix' => "$version/campaign"], function ($router) {
 // transaction
 Route::group(['prefix' => "$version/transaction"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
+        $router->get('portfolio', [TransactionController::class, 'show_portfolio']);
         $router->get('', [TransactionController::class, 'index']);
         $router->get('/{id}', [TransactionController::class, 'show']);
         $router->post('', [TransactionController::class, 'store']);
@@ -280,10 +282,13 @@ Route::group(['prefix' => "$version/campaign-banner"], function ($router) {
 // payment
 Route::group(['prefix' => "$version/payment"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
+        $router->post('do-payment', [PaymentController::class, 'do_payment']);
         $router->get('', [PaymentController::class, 'index']);
+        $router->get('with-campaign', [PaymentController::class, 'paymentwithcampaign']);
         $router->get('/{id}', [PaymentController::class, 'show']);
-        $router->post('', [PaymentController::class, 'update2']);
+        $router->post('', [PaymentController::class, 'store']);
         $router->post('{id}', [PaymentController::class, 'update']);
+        $router->post('do-payment', [PaymentController::class, 'do_payment']);
         $router->delete('{id}', [PaymentController::class, 'destroy']);
     });
 });
@@ -291,7 +296,7 @@ Route::group(['prefix' => "$version/payment"], function ($router) {
 
 // dashboard
 Route::group(['prefix' => "$version/dashboard"], function ($router){
-    Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
+    Route::group(['middleware' => 'auth:1,2,3'], function ($router) {
         $router->get('', [DashboardController::class, 'index']);
     });
 });

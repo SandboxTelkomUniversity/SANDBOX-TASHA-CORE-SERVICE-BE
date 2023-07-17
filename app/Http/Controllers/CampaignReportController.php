@@ -76,7 +76,7 @@ class CampaignReportController extends Controller
             $file_document = $request->file('file_document');
             $original_name = $file_document->getClientOriginalName();
             $timestamp = now()->timestamp;
-            $new_file_name = $timestamp . '_' . $original_name;
+            $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores
             $path_of_file_document = $file_document->storeAs('public/document', $new_file_name);
             $document_url = Storage::url($path_of_file_document);
             $field_campaign_reports['document_url'] = $document_url;
@@ -91,10 +91,10 @@ class CampaignReportController extends Controller
         } else{
             return response()->json([
                 'status' => 'error',
-                'message' => 'The project has not started yet.'
+                'message' => 'The project has not started yet.',
+                'server_time' => (int) round(microtime(true) * 1000),
             ]);
         }
-
     }
 
     public function show(Request $request, $id)
@@ -126,7 +126,7 @@ class CampaignReportController extends Controller
             $file_document = $request->file('file_document');
             $original_name = $file_document->getClientOriginalName();
             $timestamp = now()->timestamp;
-            $new_file_name = $timestamp . '_' . $original_name;
+            $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores
             $path_of_file_document = $file_document->storeAs('public/document', $new_file_name);
             $document_url = Storage::url($path_of_file_document);
             $field_campaign_reports['document_url'] = $document_url;
@@ -138,11 +138,25 @@ class CampaignReportController extends Controller
             $file = public_path($data->document_url);
             $extension = pathinfo($file, PATHINFO_EXTENSION);
 
+            $delimiter = $this->detectDelimiter($file);
+
+            if (!$delimiter) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unsupported delimiter',
+                    'server_time' => (int) round(microtime(true) * 1000),
+                ], 422);
+            }
+
+            $data_of_campaign_report_detail = [];
+
             if ($extension === 'xlsx') {
                 $import = new CampaignReportDetailImport();
                 $data_of_campaign_report_detail = Excel::toArray($import, $file);
             } elseif ($extension === 'csv') {
-                $data_of_campaign_report_detail = array_map('str_getcsv', file($file));
+                $data_of_campaign_report_detail = array_map(function ($row) use ($delimiter) {
+                    return str_getcsv($row, $delimiter);
+                }, file($file));
                 array_shift($data_of_campaign_report_detail); // Remove header row
             } else {
                 return response()->json([
@@ -175,6 +189,24 @@ class CampaignReportController extends Controller
             'server_time' => (int) round(microtime(true) * 1000),
         ]);
     }
+
+    private function detectDelimiter($file)
+    {
+        $delimiters = [',', ';', "\t", '|'];
+        $handle = fopen($file, 'r');
+        $firstLine = fgets($handle);
+        fclose($handle);
+
+        foreach ($delimiters as $delimiter) {
+            $count = count(str_getcsv($firstLine, $delimiter));
+            if ($count > 1) {
+                return $delimiter;
+            }
+        }
+
+        return false;
+    }
+
 
 
     public function destroy($id)

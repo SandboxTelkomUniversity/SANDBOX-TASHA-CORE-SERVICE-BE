@@ -47,4 +47,20 @@ class Handler extends ExceptionHandler
             //
         });
     }
+
+    public function render($request, Throwable $exception)
+    {
+        if ($exception instanceof \Exception) {
+            // Handle the exception and return a JSON response
+            return response()->json([
+                'status' => 'error',
+                'message' => 'BAD_REQUEST',
+                'data' => $exception->getMessage(),
+                'server_time' => (int) round(microtime(true) * 1000),
+            ]);
+        }
+
+        return parent::render($request, $exception);
+    }
+
 }

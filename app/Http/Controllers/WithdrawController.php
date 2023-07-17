@@ -63,7 +63,8 @@ class WithdrawController extends Controller
         } else{
             return response()->json([
                 'status' => 'error',
-                'message' => 'The project funds have not been collected yet.'
+                'message' => 'The project funds have not been collected yet.',
+                'server_time' => (int) round(microtime(true) * 1000),
             ]);
         }
     }
