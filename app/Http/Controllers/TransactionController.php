@@ -165,14 +165,16 @@ class TransactionController extends Controller
 
         // add logical here
         // TODO: add logical here
-        $campaign_id = Transaction::where('id', $id)->pluck('id_campaign')->first();
-        $investor_amount = Transaction::where('id', $id)->pluck('investor_amount')->first();
-        $current_funding_amount = Campaign::where('id', $campaign_id)->pluck('current_funding_amount')->first();
-        $campaign = Campaign::where('id', $campaign_id)->first();
-        $new_current_funding_amount = $current_funding_amount + $investor_amount;
-        if ($campaign) {
-            $campaign->current_funding_amount = $new_current_funding_amount;
-            $campaign->save(); // Melakukan update pada kolom "name"
+        if ($request->status == 'APPROVED') {
+            $campaign_id = Transaction::where('id', $id)->pluck('id_campaign')->first();
+            $investor_amount = Transaction::where('id', $id)->pluck('investor_amount')->first();
+            $current_funding_amount = Campaign::where('id', $campaign_id)->pluck('current_funding_amount')->first();
+            $campaign = Campaign::where('id', $campaign_id)->first();
+            $new_current_funding_amount = $current_funding_amount + $investor_amount;
+            if ($campaign) {
+                $campaign->current_funding_amount = $new_current_funding_amount;
+                $campaign->save(); // Melakukan update pada kolom "name"
+            }
         }
         return response()->json([
             'status' => 'success',
