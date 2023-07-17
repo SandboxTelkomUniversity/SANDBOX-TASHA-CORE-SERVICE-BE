@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('campaigns', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('id_user')->nullable();
-            $table->string('name')->nullable();
+            $table->string('name')->unique();
             $table->text('description')->nullable();
             $table->string('type')->nullable();
             $table->bigInteger('target_funding_amount')->nullable();
