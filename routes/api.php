@@ -227,11 +227,12 @@ Route::group(['prefix' => "$version/campaign"], function ($router) {
 // transaction
 Route::group(['prefix' => "$version/transaction"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
+        $router->post('transaction-aprroval/{id}', [TransactionController::class, 'transaction_approval']);
         $router->get('portfolio', [TransactionController::class, 'show_portfolio']);
         $router->get('', [TransactionController::class, 'index']);
         $router->get('/{id}', [TransactionController::class, 'show']);
         $router->post('', [TransactionController::class, 'store']);
-        $router->post('{id}', [TransactionController::class, 'transaction_approval']);
+        $router->post('{id}', [TransactionController::class, 'update']);
         $router->delete('{id}', [TransactionController::class, 'destroy']);
     });
 });
