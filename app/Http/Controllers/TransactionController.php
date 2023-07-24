@@ -111,22 +111,24 @@ class TransactionController extends Controller
             ], 404);
         }
 
+        $user = User::where('id', $transaction->id_user)->first();
+
         Config::$clientKey = env('MIDTRANS_CLIENT_KEY');
         Config::$serverKey = env('MIDTRANS_SERVER_KEY');
         Config::$isProduction = false;
         Config::$isSanitized = true;
         Config::$is3ds = true;
 
-//        return $transaction;
 
         $midtrans = [
             'transaction_details' => [
                 'order_id' => $transaction->id,
-                'gross_amount' => (int) $transaction->investor_amount,
+                'gross_amount' => (int) $transaction->investor_amount + (int) $transaction->service_fee,
             ],
             'customer_details' => [
-                'first_name' => "lala",
-                'email' => "lalalalal@gmail.com"
+                'first_name' => $user->full_name,
+                'email' => $user->email,
+                'phone' => $user->phone_number
             ],
             'enabled_payments' => ['gopay', 'bank_transfer', 'credit_card'],
             'vtweb' => []
