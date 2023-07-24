@@ -72,29 +72,7 @@ class TransactionController extends Controller
         $field_transactions['id_receipt'] = $receipts->id;
         $data = Transaction::create($field_transactions);
 
-
-        // Set Midtrans configuration (consider moving this to a centralized location)
-        Config::$clientKey = env('MIDTRANS_CLIENT_KEY');
-        Config::$serverKey = env('MIDTRANS_SERVER_KEY');
-        Config::$isProduction = false;
-        Config::$isSanitized = true;
-        Config::$is3ds = true;
-
-        $user = User::findOrFail($data->id_user);
-
-        $midtrans = [
-            'transaction_details' => [
-                'order_id' => $data->id,
-                'gross_amount' => (int)$data->investor_amount + (int)$data->service_fee,
-            ],
-            'customer_details' => [
-                'first_name' => $user->full_name,
-                'email' => $user->email,
-                'phone' => $user->phone_number
-            ],
-            'enabled_payments' => ['gopay', 'bank_transfer', 'credit_card'],
-            'vtweb' => []
-        ];
+        $midtrans = $this->getMidtransConfiguration($data);
 
         try {
             $snapToken = Snap::createTransaction($midtrans);
@@ -135,16 +113,28 @@ class TransactionController extends Controller
         }
 
         $transaction = Transaction::findOrFail($request->id_transaction);
-        $user = User::findOrFail($transaction->id_user);
+        $midtrans = $this->getMidtransConfiguration($transaction);
+        $snapToken = Snap::createTransaction($midtrans);
 
-        // Set Midtrans configuration (consider moving this to a centralized location)
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data created successfully',
+            'data' => ['snap_token' => $snapToken],
+            'server_time' => (int)round(microtime(true) * 1000),
+        ]);
+    }
+
+    private function getMidtransConfiguration($transaction)
+    {
         Config::$clientKey = env('MIDTRANS_CLIENT_KEY');
         Config::$serverKey = env('MIDTRANS_SERVER_KEY');
         Config::$isProduction = false;
         Config::$isSanitized = true;
         Config::$is3ds = true;
 
-        $midtrans = [
+        $user = User::findOrFail($transaction->id_user);
+
+        return [
             'transaction_details' => [
                 'order_id' => $transaction->id,
                 'gross_amount' => (int)$transaction->investor_amount + (int)$transaction->service_fee,
@@ -157,15 +147,6 @@ class TransactionController extends Controller
             'enabled_payments' => ['gopay', 'bank_transfer', 'credit_card'],
             'vtweb' => []
         ];
-
-        $snapToken = Snap::createTransaction($midtrans);
-
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data created successfully',
-            'data' => ['snap_token' => $snapToken],
-            'server_time' => (int)round(microtime(true) * 1000),
-        ]);
     }
 
     public function callback(Request $request){
