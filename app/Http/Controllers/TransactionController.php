@@ -72,16 +72,49 @@ class TransactionController extends Controller
         $field_transactions['id_receipt'] = $receipts->id;
         $data = Transaction::create($field_transactions);
 
-        // add logical here
-        // TODO: add logical here
 
+        // Set Midtrans configuration (consider moving this to a centralized location)
+        Config::$clientKey = env('MIDTRANS_CLIENT_KEY');
+        Config::$serverKey = env('MIDTRANS_SERVER_KEY');
+        Config::$isProduction = false;
+        Config::$isSanitized = true;
+        Config::$is3ds = true;
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Data created successfully',
-            'data' => $data,
-            'server_time' => (int)round(microtime(true) * 1000),
-        ]);
+        $user = User::findOrFail($data->id_user);
+
+        $midtrans = [
+            'transaction_details' => [
+                'order_id' => $data->id,
+                'gross_amount' => (int)$data->investor_amount + (int)$data->service_fee,
+            ],
+            'customer_details' => [
+                'first_name' => $user->full_name,
+                'email' => $user->email,
+                'phone' => $user->phone_number
+            ],
+            'enabled_payments' => ['gopay', 'bank_transfer', 'credit_card'],
+            'vtweb' => []
+        ];
+
+        try {
+            $snapToken = Snap::createTransaction($midtrans);
+            $data->payment_url = $snapToken->redirect_url;
+            $data->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data created successfully',
+                'data' => $data,
+                'server_time' => (int)round(microtime(true) * 1000),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Payment gateway error. Please use a manual payment method.',
+                'data' => $data,
+                'server_time' => (int)round(microtime(true) * 1000),
+            ]);
+        }
     }
 
     public function midtrans_transaction(Request $request)
