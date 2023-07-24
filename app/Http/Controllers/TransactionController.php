@@ -119,7 +119,7 @@ class TransactionController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Data created successfully',
-            'data' => ['snap_token' => $snapToken],
+            'data' => $snapToken,
             'server_time' => (int)round(microtime(true) * 1000),
         ]);
     }
