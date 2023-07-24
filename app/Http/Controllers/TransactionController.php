@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Midtrans\Config;
+use Midtrans\Snap;
 
 class TransactionController extends Controller
 {
@@ -84,50 +86,57 @@ class TransactionController extends Controller
 
     public function midtrans_transaction(Request $request)
     {
-        CampaignController::triggerCampaignStatusBySystem();
-        // create receipt
-        // $field_receipts = $request->only((new Receipt())->getFillable());
-        // if ($request->hasFile('file_receipt')) {
-        //     $file_receipt = $request->file('file_receipt');
-        //     $original_name = $file_receipt->getClientOriginalName();
-        //     $timestamp = now()->timestamp;
-        //     $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores;
-        //     $path_of_file_receipt = $file_receipt->storeAs('public/receipt', $new_file_name);
-        //     $receipt_url = Storage::url($path_of_file_receipt);
-        //     $field_receipts['receipt_url'] = $receipt_url;
-        // }
-        // $receipts = Receipt::create($field_receipts);
-        $field_transactions = $request->only((new Transaction())->getFillable());
-        $field_transactions['id_user'] = $request->user()->id;
-        //$field_transactions['id_receipt'] = $receipts->id;
-        $data = Transaction::create($field_transactions);
-
-        // add logical here
-        // TODO: add logical here
-
-        \Midtrans\Config::$serverKey = config('midtrans.server_key');
-        // Set to Development/Sandbox Environment (default). Set to true for Production Environment (accept real transaction).
-        \Midtrans\Config::$isProduction = false;
-        // Set sanitization on (default)
-        \Midtrans\Config::$isSanitized = true;
-        // Set 3DS transaction for credit card to true
-        \Midtrans\Config::$is3ds = true;
-
-        $total = $request->investor_amount + $request->service_fee ;
-        $params = array(
-            'transaction_details' => array(
-                'order_id' => $data->id,
-                'gross_amount' => $total,
-            ),
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'id_transaction' => 'required',
+            ]
         );
 
-        $snapToken = \Midtrans\Snap::getSnapToken($params);
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'id transaction required',
+                'server_time' => (int) round(microtime(true) * 1000),
+            ], 403);
+        }
+
+
+        $transaction = Transaction::where('id', $request->id_transaction)->first();
+        if (empty($transaction)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Transaction not found',
+                'server_time' => (int) round(microtime(true) * 1000),
+            ], 404);
+        }
+
+        Config::$clientKey = env('MIDTRANS_CLIENT_KEY');
+        Config::$serverKey = env('MIDTRANS_SERVER_KEY');
+        Config::$isProduction = false;
+        Config::$isSanitized = true;
+        Config::$is3ds = true;
+
+//        return $transaction;
+
+        $midtrans = [
+            'transaction_details' => [
+                'order_id' => $transaction->id,
+                'gross_amount' => (int) $transaction->investor_amount,
+            ],
+            'customer_details' => [
+                'first_name' => "lala",
+                'email' => "lalalalal@gmail.com"
+            ],
+            'enabled_payments' => ['gopay', 'bank_transfer', 'credit_card'],
+            'vtweb' => []
+        ];
+       $snapToken =  Snap::createTransaction($midtrans);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Data created successfully',
-            'data' => $data,
-            'snapToken' =>$snapToken,
+            'data' => ['snap_token' => $snapToken],
             'server_time' => (int)round(microtime(true) * 1000),
         ]);
     }

@@ -77,7 +77,7 @@ class Handler extends ExceptionHandler
             return response()->json([
                 'status' => 'error',
                 'message' => 'INTERNAL_SERVER_ERROR',
-                'data' => null,
+                'data' => $exception->getMessage(),
                 'server_time' => (int) round(microtime(true) * 1000),
             ], 500);
         }
