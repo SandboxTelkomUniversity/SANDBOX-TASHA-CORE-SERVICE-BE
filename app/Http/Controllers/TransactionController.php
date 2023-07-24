@@ -97,33 +97,24 @@ class TransactionController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => 'id transaction required',
-                'server_time' => (int) round(microtime(true) * 1000),
+                'server_time' => (int)round(microtime(true) * 1000),
             ], 403);
         }
 
+        $transaction = Transaction::findOrFail($request->id_transaction);
+        $user = User::findOrFail($transaction->id_user);
 
-        $transaction = Transaction::where('id', $request->id_transaction)->first();
-        if (empty($transaction)) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Transaction not found',
-                'server_time' => (int) round(microtime(true) * 1000),
-            ], 404);
-        }
-
-        $user = User::where('id', $transaction->id_user)->first();
-
+        // Set Midtrans configuration (consider moving this to a centralized location)
         Config::$clientKey = env('MIDTRANS_CLIENT_KEY');
         Config::$serverKey = env('MIDTRANS_SERVER_KEY');
         Config::$isProduction = false;
         Config::$isSanitized = true;
         Config::$is3ds = true;
 
-
         $midtrans = [
             'transaction_details' => [
                 'order_id' => $transaction->id,
-                'gross_amount' => (int) $transaction->investor_amount + (int) $transaction->service_fee,
+                'gross_amount' => (int)$transaction->investor_amount + (int)$transaction->service_fee,
             ],
             'customer_details' => [
                 'first_name' => $user->full_name,
@@ -133,7 +124,8 @@ class TransactionController extends Controller
             'enabled_payments' => ['gopay', 'bank_transfer', 'credit_card'],
             'vtweb' => []
         ];
-       $snapToken =  Snap::createTransaction($midtrans);
+
+        $snapToken = Snap::createTransaction($midtrans);
 
         return response()->json([
             'status' => 'success',
