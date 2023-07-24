@@ -82,6 +82,67 @@ class TransactionController extends Controller
         ]);
     }
 
+    public function midtrans_transaction(Request $request)
+    {
+        CampaignController::triggerCampaignStatusBySystem();
+        // create receipt
+        // $field_receipts = $request->only((new Receipt())->getFillable());
+        // if ($request->hasFile('file_receipt')) {
+        //     $file_receipt = $request->file('file_receipt');
+        //     $original_name = $file_receipt->getClientOriginalName();
+        //     $timestamp = now()->timestamp;
+        //     $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores;
+        //     $path_of_file_receipt = $file_receipt->storeAs('public/receipt', $new_file_name);
+        //     $receipt_url = Storage::url($path_of_file_receipt);
+        //     $field_receipts['receipt_url'] = $receipt_url;
+        // }
+        // $receipts = Receipt::create($field_receipts);
+        $field_transactions = $request->only((new Transaction())->getFillable());
+        $field_transactions['id_user'] = $request->user()->id;
+        //$field_transactions['id_receipt'] = $receipts->id;
+        $data = Transaction::create($field_transactions);
+
+        // add logical here
+        // TODO: add logical here
+
+        \Midtrans\Config::$serverKey = config('midtrans.server_key');
+        // Set to Development/Sandbox Environment (default). Set to true for Production Environment (accept real transaction).
+        \Midtrans\Config::$isProduction = false;
+        // Set sanitization on (default)
+        \Midtrans\Config::$isSanitized = true;
+        // Set 3DS transaction for credit card to true
+        \Midtrans\Config::$is3ds = true;
+
+        $total = $request->investor_amount + $request->service_fee ;
+        $params = array(
+            'transaction_details' => array(
+                'order_id' => $data->id,
+                'gross_amount' => $total,
+            ),
+        );
+
+        $snapToken = \Midtrans\Snap::getSnapToken($params);
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Data created successfully',
+            'data' => $data,
+            'snapToken' =>$snapToken,
+            'server_time' => (int)round(microtime(true) * 1000),
+        ]);
+    }
+
+    public function callback(Request $request){
+        $serverKey = config('midtrans.server_key');
+        $hashed = hash("sha512", $request->order_id.$request->status_code.$request->gross_amount.$serverKey);
+        if($hashed == $request->signature_key){
+            if($request->transaction_status == 'capture'){
+                $data = Transaction::find($request->order_id);
+                $data->update(['status' => 'APPROVED']);
+            }
+        }
+    }
+
     public function show(Request $request, $id)
     {
         CampaignController::triggerCampaignStatusBySystem();
