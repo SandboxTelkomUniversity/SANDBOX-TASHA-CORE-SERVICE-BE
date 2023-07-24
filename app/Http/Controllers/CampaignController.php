@@ -42,7 +42,7 @@ class CampaignController extends Controller
         }
 
         // Apply is_active condition and paginate
-        $data = $data->where('is_deleted', false)->paginate(10, ['*'], 'page', $current_page);
+        $data = $data->where('is_deleted', false)->paginate(50, ['*'], 'page', $current_page);
 
         return response()->json([
             'status' => 'success',
@@ -79,7 +79,7 @@ class CampaignController extends Controller
         }
 
         // Apply is_active condition and paginate
-        $data = $data->where('is_deleted', false)->paginate(10, ['*'], 'page', $current_page);
+        $data = $data->where('is_deleted', false)->paginate(50, ['*'], 'page', $current_page);
 
         // Retrieve total_investor data for each Campaign
         foreach ($data as $campaign) {

@@ -33,7 +33,7 @@ class PaymentController extends Controller
         }
 
         // Apply is_active condition and paginate
-        $data = $data->where('is_deleted', false)->paginate(10, ['*'], 'page', $current_page);
+        $data = $data->where('is_deleted', false)->paginate(20, ['*'], 'page', $current_page);
 
         return response()->json([
             'status' => 'success',
@@ -47,14 +47,34 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function paymentwithcampaign(Request $request)
+    public function payment_with_campaign(Request $request)
     {
         $data = DB::table('campaign_reports')
             ->join('payments', 'campaign_reports.id_payment', '=', 'payments.id')
             ->join('campaigns', 'campaign_reports.id_campaign', '=', 'campaigns.id')
-            ->select('campaigns.name', 'payments.id', 'payments.id_user', 'payments.id_receipt', 'payments.amount', 'payments.status', 'payments.created_by', 'payments.updated_by', 'payments.is_deleted', 'payments.version', 'payments.created_at', 'payments.updated_at')
+            ->join('receipts', 'receipts.id', '=', 'payments.id_receipt')
+            ->where('payments.id_user', $request->id_user)
+            ->select('campaigns.name', 'campaigns.start_date', 'campaigns.closing_date', 'campaigns.category','campaigns.type', 'payments.id', 'payments.id_user', 'payments.id_receipt', 'payments.amount', 'payments.status', 'payments.created_by', 'payments.updated_by', 'payments.is_deleted', 'payments.version', 'payments.created_at', 'payments.updated_at', 'receipts.receipt_url')
             ->get();
+    
+        return response()->json([
+            'status' => 'success',
+            'data' => $data,
+            'server_time' => (int) round(microtime(true) * 1000),
+        ]);
+    }
 
+    public function detail_payment(Request $request, $id)
+    {
+        $data = DB::table('campaign_reports')
+            ->join('payments', 'campaign_reports.id_payment', '=', 'payments.id')
+            ->join('campaigns', 'campaign_reports.id_campaign', '=', 'campaigns.id')
+            ->join('receipts', 'receipts.id', '=', 'payments.id_receipt')
+            ->join('users', 'payments.id_user', '=', 'users.id')
+            ->where('payments.id', $id)
+            ->select('users.full_name','campaigns.name', 'campaigns.start_date', 'campaigns.closing_date', 'campaigns.category','campaigns.type', 'payments.id', 'payments.id_user', 'payments.id_receipt', 'payments.amount', 'payments.status', 'payments.created_by', 'payments.updated_by', 'payments.is_deleted', 'payments.version', 'payments.created_at', 'payments.updated_at', 'receipts.receipt_url')
+            ->get();
+    
         return response()->json([
             'status' => 'success',
             'data' => $data,
@@ -180,7 +200,7 @@ class PaymentController extends Controller
                         ->whereNotNull('payments.amount')
                         ->count();
 
-        $installment = $payed + 1; 
+        $installment = $payed + 1;
 
         $reported = DB::table('campaign_reports')->where('id_campaign', $id_campaign)->where('is_exported', '1')->count();
 
@@ -201,34 +221,34 @@ class PaymentController extends Controller
                         ->where('payments.status', 'WAITING_VERIFICATION')
                         ->whereNull('payments.amount')
                         ->count();
-                        
+
         $data = Payment::find($id_payment);
         if ($notpayedyet == 1) {
             if ($status == "RUNNING" && $reported == $installment) {
                 if ($data->receipt) {
                     $field_receipts = $request->only((new Receipt())->getFillable());
-        
+
                     if ($request->hasFile('file_receipt')) {
                         $file_receipt = $request->file('file_receipt');
                         $original_name = $file_receipt->getClientOriginalName();
                         $timestamp = now()->timestamp;
-                        $new_file_name = $timestamp . '_' . $original_name;
+                        $new_file_name = $timestamp . '_' . str_replace(' ', '_', $original_name); // Replace spaces with underscores;
                         $path_of_file_receipt = $file_receipt->storeAs('public/receipt', $new_file_name);
                         $receipt_url = Storage::url($path_of_file_receipt);
                         $field_receipts['receipt_url'] = $receipt_url;
                     }
-        
+
                     $field_payment = $request->only((new Payment())->getFillable());
                     $field_payment['id_user'] = null;
                     $field_payment['id_receipt'] = null;
                     unset($field_payment['id_user']);
                     unset($field_payment['id_receipt']);
-        
+
                     $data->receipt->update($field_receipts);
                 }
-        
+
                 $data->update($field_payment);
-        
+
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Data updated successfully',
@@ -243,7 +263,7 @@ class PaymentController extends Controller
                 ]);
             }
         }
-        
+
         else{
             return response()->json([
                 'status' => 'error',

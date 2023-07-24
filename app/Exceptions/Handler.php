@@ -2,7 +2,9 @@
 
 namespace App\Exceptions;
 
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -50,16 +52,37 @@ class Handler extends ExceptionHandler
 
     public function render($request, Throwable $exception)
     {
-        if ($exception instanceof \Exception) {
-            // Handle the exception and return a JSON response
+        // Handle ModelNotFoundException (404 - Resource Not Found)
+        if ($exception instanceof ModelNotFoundException) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'RESOURCE_NOT_FOUND',
+                'data' => null,
+                'server_time' => (int) round(microtime(true) * 1000),
+            ], 404);
+        }
+
+        // Handle HttpException (e.g., 400 - Bad Request)
+        if ($exception instanceof HttpException) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'BAD_REQUEST',
                 'data' => $exception->getMessage(),
                 'server_time' => (int) round(microtime(true) * 1000),
-            ]);
+            ], $exception->getStatusCode());
         }
 
+        // Handle other general exceptions (500 - Internal Server Error)
+        if ($exception instanceof \Exception) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'INTERNAL_SERVER_ERROR',
+                'data' => null,
+                'server_time' => (int) round(microtime(true) * 1000),
+            ], 500);
+        }
+
+        // Call the parent render method for other cases (e.g., TokenMismatchException, etc.)
         return parent::render($request, $exception);
     }
 
