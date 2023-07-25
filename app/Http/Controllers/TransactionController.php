@@ -145,45 +145,61 @@ class TransactionController extends Controller
                 'email' => $user->email,
                 'phone' => $user->phone_number
             ],
-            'enabled_payments' => ['gopay', 'bank_transfer', 'credit_card'],
+            'enabled_payments' => ['bank_transfer'],
             'vtweb' => []
         ];
     }
 
-    public function callback(Request $request){
-         // Configure Midtrans
-         Config::$serverKey = env('MIDTRANS_SERVER_KEY');
-         Config::$isProduction = false;
-         Config::$isSanitized = true;
-         Config::$is3ds = true;
- 
-         // Create Instance Midtrans Notification
-         $notification = new Notification();
- 
-         // Assign variable to code funny
-         $status = $notification->transaction_status;
-         $type = $notification->payment_type;
-         $fraud = $notification->fraud_status;
-         $order_id = $notification->order_id;
- 
-         // Search Transaction from ID
-         $transaction = Transaction::findOrFail($order_id);
- 
-         // Notification Handle Midtrans Status
-         if ($status == 'capture') {
-             $transaction->status = 'APPROVED';
-         } else if ($status == 'pending') {
-             $transaction->status = 'WAITING_VERIFICATION';
-         } else if ($status == 'deny') {
-             $transaction->status = 'REJECTED';
-         } else if ($status == 'expire') {
-             $transaction->status = 'REJECTED';
-         } else if ($status == 'cancel') {
-             $transaction->status = 'REJECTED';
-         }
- 
-         // Save Transaction
-         $transaction->save();
+    public function callback(Request $request)
+    {
+        // Configure Midtrans
+        Config::$clientKey = env('MIDTRANS_CLIENT_KEY');
+        Config::$serverKey = env('MIDTRANS_SERVER_KEY');
+        Config::$isProduction = false;
+        Config::$isSanitized = true;
+        Config::$is3ds = true;
+
+        // Create Instance Midtrans Notification
+        $notification = new Notification();
+
+        // Assign variables for readability
+        $status = $notification->transaction_status;
+        $id_transaction = $notification->order_id;
+        $total_transaction = $notification->gross_amount;
+
+        // Search Transaction from ID
+        $transaction = Transaction::findOrFail($id_transaction);
+
+        // Notification Handle Midtrans Status
+        switch ($status) {
+            case 'capture':
+            case 'settlement':
+                // Update campaign's current_funding_amount if status is 'APPROVED'
+                $campaign_id = $transaction->id_campaign;
+                $current_funding_amount = Campaign::where('id', $transaction->id_campaign)->pluck('current_funding_amount')->first();
+                $campaign = Campaign::where('id', $campaign_id)->first();
+                $new_current_funding_amount = $current_funding_amount + $total_transaction;
+                if ($campaign) {
+                    $campaign->current_funding_amount = $new_current_funding_amount;
+                    $campaign->updated_by = 'midtrans';
+                    $campaign->save();
+                }
+
+                $transaction->status = 'APPROVED';
+                break;
+            case 'pending':
+                $transaction->status = 'WAITING_VERIFICATION';
+                break;
+            case 'deny':
+            case 'expire':
+            case 'failure':
+            case 'cancel':
+                $transaction->status = 'REJECTED';
+                break;
+        }
+
+        // Save Transaction
+        $transaction->save();
     }
 
     public function show(Request $request, $id)
