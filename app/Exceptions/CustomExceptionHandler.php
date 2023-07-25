@@ -12,7 +12,7 @@ class CustomExceptionHandler extends Handler
         return response()->json([
             'status' => 'error',
             'message' => 'Something went wrong.',
-            'data' => null,
+            'data' => $exception->getMessage(),
             'server_time' => (int) round(microtime(true) * 1000),
         ], 500);
     }

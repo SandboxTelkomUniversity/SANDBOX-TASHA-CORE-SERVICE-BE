@@ -10,6 +10,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Midtrans\Config;
+use Midtrans\Snap;
+use Midtrans\Notification;
 
 class TransactionController extends Controller
 {
@@ -70,16 +73,133 @@ class TransactionController extends Controller
         $field_transactions['id_receipt'] = $receipts->id;
         $data = Transaction::create($field_transactions);
 
-        // add logical here
-        // TODO: add logical here
+        $midtrans = $this->getMidtransConfiguration($data);
 
+        try {
+            $snapToken = Snap::createTransaction($midtrans);
+            $data->payment_url = $snapToken->redirect_url;
+            $data->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data created successfully',
+                'data' => $data,
+                'server_time' => (int)round(microtime(true) * 1000),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Payment gateway error. Please use a manual payment method.',
+                'data' => $data,
+                'server_time' => (int)round(microtime(true) * 1000),
+            ]);
+        }
+    }
+
+    public function midtrans_transaction(Request $request)
+    {
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'id_transaction' => 'required',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'id transaction required',
+                'server_time' => (int)round(microtime(true) * 1000),
+            ], 403);
+        }
+
+        $transaction = Transaction::findOrFail($request->id_transaction);
+        $midtrans = $this->getMidtransConfiguration($transaction);
+        $snapToken = Snap::createTransaction($midtrans);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Data created successfully',
-            'data' => $data,
+            'data' => $snapToken,
             'server_time' => (int)round(microtime(true) * 1000),
         ]);
+    }
+
+    private function getMidtransConfiguration($transaction)
+    {
+        Config::$clientKey = env('MIDTRANS_CLIENT_KEY');
+        Config::$serverKey = env('MIDTRANS_SERVER_KEY');
+        Config::$isProduction = false;
+        Config::$isSanitized = true;
+        Config::$is3ds = true;
+
+        $user = User::findOrFail($transaction->id_user);
+
+        return [
+            'transaction_details' => [
+                'order_id' => $transaction->id,
+                'gross_amount' => (int)$transaction->investor_amount + (int)$transaction->service_fee,
+            ],
+            'customer_details' => [
+                'first_name' => $user->full_name,
+                'email' => $user->email,
+                'phone' => $user->phone_number
+            ],
+            'enabled_payments' => ['bank_transfer'],
+            'vtweb' => []
+        ];
+    }
+
+    public function callback(Request $request)
+    {
+        // Configure Midtrans
+        Config::$clientKey = env('MIDTRANS_CLIENT_KEY');
+        Config::$serverKey = env('MIDTRANS_SERVER_KEY');
+        Config::$isProduction = false;
+        Config::$isSanitized = true;
+        Config::$is3ds = true;
+
+        // Create Instance Midtrans Notification
+        $notification = new Notification();
+
+        // Assign variables for readability
+        $status = $notification->transaction_status;
+        $id_transaction = $notification->order_id;
+        $total_transaction = $notification->gross_amount;
+
+        // Search Transaction from ID
+        $transaction = Transaction::findOrFail($id_transaction);
+
+        // Notification Handle Midtrans Status
+        switch ($status) {
+            case 'capture':
+            case 'settlement':
+                // Update campaign's current_funding_amount if status is 'APPROVED'
+                $campaign_id = $transaction->id_campaign;
+                $current_funding_amount = Campaign::where('id', $transaction->id_campaign)->pluck('current_funding_amount')->first();
+                $campaign = Campaign::where('id', $campaign_id)->first();
+                $new_current_funding_amount = $current_funding_amount + $total_transaction;
+                if ($campaign) {
+                    $campaign->current_funding_amount = $new_current_funding_amount;
+                    $campaign->updated_by = 'midtrans';
+                    $campaign->save();
+                }
+
+                $transaction->status = 'APPROVED';
+                break;
+            case 'pending':
+                $transaction->status = 'WAITING_VERIFICATION';
+                break;
+            case 'deny':
+            case 'expire':
+            case 'failure':
+            case 'cancel':
+                $transaction->status = 'REJECTED';
+                break;
+        }
+
+        // Save Transaction
+        $transaction->save();
     }
 
     public function show(Request $request, $id)
