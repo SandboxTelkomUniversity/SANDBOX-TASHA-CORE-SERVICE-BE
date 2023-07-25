@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Midtrans\Config;
 use Midtrans\Snap;
+use Midtrans\Notification;
 
 class TransactionController extends Controller
 {
@@ -150,14 +151,39 @@ class TransactionController extends Controller
     }
 
     public function callback(Request $request){
-        $serverKey = config('midtrans.server_key');
-        $hashed = hash("sha512", $request->order_id.$request->status_code.$request->gross_amount.$serverKey);
-        if($hashed == $request->signature_key){
-            if($request->transaction_status == 'capture'){
-                $data = Transaction::find($request->order_id);
-                $data->update(['status' => 'APPROVED']);
-            }
-        }
+         // Configure Midtrans
+         Config::$serverKey = env('MIDTRANS_SERVER_KEY');
+         Config::$isProduction = false;
+         Config::$isSanitized = true;
+         Config::$is3ds = true;
+ 
+         // Create Instance Midtrans Notification
+         $notification = new Notification();
+ 
+         // Assign variable to code funny
+         $status = $notification->transaction_status;
+         $type = $notification->payment_type;
+         $fraud = $notification->fraud_status;
+         $order_id = $notification->order_id;
+ 
+         // Search Transaction from ID
+         $transaction = Transaction::findOrFail($order_id);
+ 
+         // Notification Handle Midtrans Status
+         if ($status == 'capture') {
+             $transaction->status = 'APPROVED';
+         } else if ($status == 'pending') {
+             $transaction->status = 'WAITING_VERIFICATION';
+         } else if ($status == 'deny') {
+             $transaction->status = 'REJECTED';
+         } else if ($status == 'expire') {
+             $transaction->status = 'REJECTED';
+         } else if ($status == 'cancel') {
+             $transaction->status = 'REJECTED';
+         }
+ 
+         // Save Transaction
+         $transaction->save();
     }
 
     public function show(Request $request, $id)
