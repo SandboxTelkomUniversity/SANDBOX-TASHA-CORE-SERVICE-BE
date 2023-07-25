@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Midtrans\Config;
+use Midtrans\Snap;
 
 class TransactionController extends Controller
 {
@@ -70,16 +72,92 @@ class TransactionController extends Controller
         $field_transactions['id_receipt'] = $receipts->id;
         $data = Transaction::create($field_transactions);
 
-        // add logical here
-        // TODO: add logical here
+        $midtrans = $this->getMidtransConfiguration($data);
 
+        try {
+            $snapToken = Snap::createTransaction($midtrans);
+            $data->payment_url = $snapToken->redirect_url;
+            $data->save();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Data created successfully',
+                'data' => $data,
+                'server_time' => (int)round(microtime(true) * 1000),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Payment gateway error. Please use a manual payment method.',
+                'data' => $data,
+                'server_time' => (int)round(microtime(true) * 1000),
+            ]);
+        }
+    }
+
+    public function midtrans_transaction(Request $request)
+    {
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'id_transaction' => 'required',
+            ]
+        );
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'id transaction required',
+                'server_time' => (int)round(microtime(true) * 1000),
+            ], 403);
+        }
+
+        $transaction = Transaction::findOrFail($request->id_transaction);
+        $midtrans = $this->getMidtransConfiguration($transaction);
+        $snapToken = Snap::createTransaction($midtrans);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Data created successfully',
-            'data' => $data,
+            'data' => $snapToken,
             'server_time' => (int)round(microtime(true) * 1000),
         ]);
+    }
+
+    private function getMidtransConfiguration($transaction)
+    {
+        Config::$clientKey = env('MIDTRANS_CLIENT_KEY');
+        Config::$serverKey = env('MIDTRANS_SERVER_KEY');
+        Config::$isProduction = false;
+        Config::$isSanitized = true;
+        Config::$is3ds = true;
+
+        $user = User::findOrFail($transaction->id_user);
+
+        return [
+            'transaction_details' => [
+                'order_id' => $transaction->id,
+                'gross_amount' => (int)$transaction->investor_amount + (int)$transaction->service_fee,
+            ],
+            'customer_details' => [
+                'first_name' => $user->full_name,
+                'email' => $user->email,
+                'phone' => $user->phone_number
+            ],
+            'enabled_payments' => ['gopay', 'bank_transfer', 'credit_card'],
+            'vtweb' => []
+        ];
+    }
+
+    public function callback(Request $request){
+        $serverKey = config('midtrans.server_key');
+        $hashed = hash("sha512", $request->order_id.$request->status_code.$request->gross_amount.$serverKey);
+        if($hashed == $request->signature_key){
+            if($request->transaction_status == 'capture'){
+                $data = Transaction::find($request->order_id);
+                $data->update(['status' => 'APPROVED']);
+            }
+        }
     }
 
     public function show(Request $request, $id)

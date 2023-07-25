@@ -227,6 +227,8 @@ Route::group(['prefix' => "$version/campaign"], function ($router) {
 // transaction
 Route::group(['prefix' => "$version/transaction"], function ($router) {
     Route::group(['middleware' => 'auth:1,2,3,verified'], function ($router) {
+        $router->post('/midtrans-callback', [TransactionController::class, 'callback']);
+        $router->post('/midtrans-transaction', [TransactionController::class, 'midtrans_transaction']);
         $router->post('transaction-aprroval/{id}', [TransactionController::class, 'transaction_approval']);
         $router->get('portfolio', [TransactionController::class, 'show_portfolio']);
         $router->get('', [TransactionController::class, 'index']);
