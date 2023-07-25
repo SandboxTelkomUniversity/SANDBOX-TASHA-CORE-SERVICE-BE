@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Midtrans\Config;
 use Midtrans\Snap;
+use Midtrans\Notification;
 
 class TransactionController extends Controller
 {
@@ -144,20 +145,61 @@ class TransactionController extends Controller
                 'email' => $user->email,
                 'phone' => $user->phone_number
             ],
-            'enabled_payments' => ['gopay', 'bank_transfer', 'credit_card'],
+            'enabled_payments' => ['bank_transfer'],
             'vtweb' => []
         ];
     }
 
-    public function callback(Request $request){
-        $serverKey = config('midtrans.server_key');
-        $hashed = hash("sha512", $request->order_id.$request->status_code.$request->gross_amount.$serverKey);
-        if($hashed == $request->signature_key){
-            if($request->transaction_status == 'capture'){
-                $data = Transaction::find($request->order_id);
-                $data->update(['status' => 'APPROVED']);
-            }
+    public function callback(Request $request)
+    {
+        // Configure Midtrans
+        Config::$clientKey = env('MIDTRANS_CLIENT_KEY');
+        Config::$serverKey = env('MIDTRANS_SERVER_KEY');
+        Config::$isProduction = false;
+        Config::$isSanitized = true;
+        Config::$is3ds = true;
+
+        // Create Instance Midtrans Notification
+        $notification = new Notification();
+
+        // Assign variables for readability
+        $status = $notification->transaction_status;
+        $id_transaction = $notification->order_id;
+        $total_transaction = $notification->gross_amount;
+
+        // Search Transaction from ID
+        $transaction = Transaction::findOrFail($id_transaction);
+
+        // Notification Handle Midtrans Status
+        switch ($status) {
+            case 'capture':
+            case 'settlement':
+                // Update campaign's current_funding_amount if status is 'APPROVED'
+                $campaign_id = $transaction->id_campaign;
+                $current_funding_amount = Campaign::where('id', $transaction->id_campaign)->pluck('current_funding_amount')->first();
+                $campaign = Campaign::where('id', $campaign_id)->first();
+                $new_current_funding_amount = $current_funding_amount + $total_transaction;
+                if ($campaign) {
+                    $campaign->current_funding_amount = $new_current_funding_amount;
+                    $campaign->updated_by = 'midtrans';
+                    $campaign->save();
+                }
+
+                $transaction->status = 'APPROVED';
+                break;
+            case 'pending':
+                $transaction->status = 'WAITING_VERIFICATION';
+                break;
+            case 'deny':
+            case 'expire':
+            case 'failure':
+            case 'cancel':
+                $transaction->status = 'REJECTED';
+                break;
         }
+
+        // Save Transaction
+        $transaction->save();
     }
 
     public function show(Request $request, $id)
