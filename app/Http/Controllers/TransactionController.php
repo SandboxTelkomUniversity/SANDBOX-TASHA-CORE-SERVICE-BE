@@ -173,7 +173,7 @@ class TransactionController extends Controller
         // Assign variables for readability
         $status = $notification->transaction_status;
         $id_transaction = $notification->order_id;
-        $total_transaction = $notification->gross_amount;
+        $total_transaction = $notification->gross_amount - 10000;
 
         // Search Transaction from ID
         $transaction = Transaction::findOrFail($id_transaction);
