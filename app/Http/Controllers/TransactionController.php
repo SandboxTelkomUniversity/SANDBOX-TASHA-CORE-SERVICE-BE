@@ -60,6 +60,26 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
+        $campaign = Campaign::find($request->id_campaign);
+        if (!$campaign) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Campaign not found.',
+                'server_time' => (int) round(microtime(true) * 1000),
+            ], 404);
+        }
+
+        $sisaSukuk = $campaign->max_sukuk - $campaign->sold_sukuk;
+        $sukukFromRequest = $request->sukuk;
+
+        if ($sukukFromRequest > $sisaSukuk) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Sukuk value exceeds the remaining sisa sukuk in the campaign.',
+                'server_time' => (int) round(microtime(true) * 1000),
+            ], 400);
+        }
+
         CampaignController::triggerCampaignStatusBySystem();
         $this->triggerTransactionStatusBySystem();
         // create receipt
