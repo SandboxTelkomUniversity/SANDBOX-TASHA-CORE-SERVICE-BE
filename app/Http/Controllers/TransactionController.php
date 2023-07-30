@@ -178,6 +178,7 @@ class TransactionController extends Controller
         // Search Transaction from ID
         $transaction = Transaction::findOrFail($id_transaction);
         $total_transaction = intval($notification->gross_amount) - intval($transaction->service_fee);
+        $sukuk = $transaction->sukuk;
 
         // Notification Handle Midtrans Status
         switch ($status) {
@@ -186,10 +187,13 @@ class TransactionController extends Controller
                 // Update campaign's current_funding_amount if status is 'APPROVED'
                 $campaign_id = $transaction->id_campaign;
                 $current_funding_amount = Campaign::where('id', $transaction->id_campaign)->pluck('current_funding_amount')->first();
+                $current_sold_sukuk = Campaign::where('id', $transaction->id_campaign)->pluck('sold_sukuk')->first();
                 $campaign = Campaign::where('id', $campaign_id)->first();
                 $new_current_funding_amount = $current_funding_amount + $total_transaction;
+                $new_sold_sukuk = $current_sold_sukuk + $sukuk;
                 if ($campaign) {
                     $campaign->current_funding_amount = $new_current_funding_amount;
+                    $campaign->sold_sukuk = $new_sold_sukuk;
                     $campaign->updated_by = 'midtrans';
                     $campaign->save();
                 }
