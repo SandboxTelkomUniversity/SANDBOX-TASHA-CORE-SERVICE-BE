@@ -28,7 +28,7 @@ class DashboardController extends Controller
         if ($authorization_level == 1) {
             $response['data']['total_asset'] = Transaction::where('id_user', $user->id)
                 ->where('status', 'APPROVED')
-                ->coalesce(DB::raw('SUM(investor_amount)'), 0);
+                ->sum('investor_amount') ?? 0;
             $response['data']['campaigns'] = Campaign::where('status', 'ACTIVE')->limit(5)->get();
             $response['data']['news'] = [
                 'error' => "Please redirect to news api",
