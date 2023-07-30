@@ -77,6 +77,7 @@ class TransactionController extends Controller
         $field_transactions = $request->only((new Transaction())->getFillable());
         $field_transactions['id_user'] = $request->user()->id;
         $field_transactions['id_receipt'] = $receipts->id;
+        $field_transactions['payment_url'] = "";
         $data = Transaction::create($field_transactions);
 
         $midtrans = $this->getMidtransConfiguration($data);
@@ -95,7 +96,7 @@ class TransactionController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 'success',
-                'message' => 'Payment gateway error. Please use a manual payment method.',
+                'message' => 'Success, but payment gateway error. Please use a manual payment method.',
                 'data' => $data,
                 'server_time' => (int)round(microtime(true) * 1000),
             ]);
