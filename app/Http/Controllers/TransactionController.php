@@ -114,9 +114,12 @@ class TransactionController extends Controller
                 'server_time' => (int)round(microtime(true) * 1000),
             ]);
         } catch (\Throwable $e) {
+            $data->payment_url = "";
+            $data->save();
+
             return response()->json([
                 'status' => 'success',
-                'message' => 'Success, but payment gateway error. Please use a manual payment method.',
+                'message' => 'Success created transaction, but payment gateway error. Please use a manual payment method',
                 'data' => $data,
                 'server_time' => (int)round(microtime(true) * 1000),
             ]);
