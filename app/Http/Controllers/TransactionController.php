@@ -3,10 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Campaign;
+use App\Models\CampaignReport;
 use App\Models\Receipt;
 use App\Models\Transaction;
 use App\Models\User;
+use App\Models\Withdraw;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -19,6 +23,7 @@ class TransactionController extends Controller
     public function index(Request $request)
     {
         CampaignController::triggerCampaignStatusBySystem();
+        $this->triggerTransactionStatusBySystem();
         $current_page = $request->query('current_page', 1);
         $data = new Transaction;
 
@@ -55,7 +60,28 @@ class TransactionController extends Controller
 
     public function store(Request $request)
     {
+        $campaign = Campaign::find($request->id_campaign);
+        if (!$campaign) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Campaign not found.',
+                'server_time' => (int) round(microtime(true) * 1000),
+            ], 404);
+        }
+
+        $sisaSukuk = $campaign->max_sukuk - $campaign->sold_sukuk;
+        $sukukFromRequest = $request->sukuk;
+
+        if ($sukukFromRequest > $sisaSukuk) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Sukuk value exceeds the remaining sisa sukuk in the campaign.',
+                'server_time' => (int) round(microtime(true) * 1000),
+            ], 400);
+        }
+
         CampaignController::triggerCampaignStatusBySystem();
+        $this->triggerTransactionStatusBySystem();
         // create receipt
         $field_receipts = $request->only((new Receipt())->getFillable());
         if ($request->hasFile('file_receipt')) {
@@ -71,6 +97,7 @@ class TransactionController extends Controller
         $field_transactions = $request->only((new Transaction())->getFillable());
         $field_transactions['id_user'] = $request->user()->id;
         $field_transactions['id_receipt'] = $receipts->id;
+        $field_transactions['payment_url'] = null;
         $data = Transaction::create($field_transactions);
 
         $midtrans = $this->getMidtransConfiguration($data);
@@ -87,9 +114,12 @@ class TransactionController extends Controller
                 'server_time' => (int)round(microtime(true) * 1000),
             ]);
         } catch (\Throwable $e) {
+            $data->payment_url = "";
+            $data->save();
+
             return response()->json([
                 'status' => 'success',
-                'message' => 'Payment gateway error. Please use a manual payment method.',
+                'message' => 'Success created transaction, but payment gateway error. Please use a manual payment method',
                 'data' => $data,
                 'server_time' => (int)round(microtime(true) * 1000),
             ]);
@@ -98,6 +128,7 @@ class TransactionController extends Controller
 
     public function midtrans_transaction(Request $request)
     {
+        $this->triggerTransactionStatusBySystem();
         $validator = Validator::make(
             $request->all(),
             [
@@ -152,6 +183,7 @@ class TransactionController extends Controller
 
     public function callback(Request $request)
     {
+        $this->triggerTransactionStatusBySystem();
         // Configure Midtrans
         Config::$clientKey = env('MIDTRANS_CLIENT_KEY');
         Config::$serverKey = env('MIDTRANS_SERVER_KEY');
@@ -165,10 +197,11 @@ class TransactionController extends Controller
         // Assign variables for readability
         $status = $notification->transaction_status;
         $id_transaction = $notification->order_id;
-        $total_transaction = $notification->gross_amount;
 
         // Search Transaction from ID
         $transaction = Transaction::findOrFail($id_transaction);
+        $total_transaction = intval($notification->gross_amount) - intval($transaction->service_fee);
+        $sukuk = $transaction->sukuk;
 
         // Notification Handle Midtrans Status
         switch ($status) {
@@ -177,10 +210,13 @@ class TransactionController extends Controller
                 // Update campaign's current_funding_amount if status is 'APPROVED'
                 $campaign_id = $transaction->id_campaign;
                 $current_funding_amount = Campaign::where('id', $transaction->id_campaign)->pluck('current_funding_amount')->first();
+                $current_sold_sukuk = Campaign::where('id', $transaction->id_campaign)->pluck('sold_sukuk')->first();
                 $campaign = Campaign::where('id', $campaign_id)->first();
                 $new_current_funding_amount = $current_funding_amount + $total_transaction;
+                $new_sold_sukuk = $current_sold_sukuk + $sukuk;
                 if ($campaign) {
                     $campaign->current_funding_amount = $new_current_funding_amount;
+                    $campaign->sold_sukuk = $new_sold_sukuk;
                     $campaign->updated_by = 'midtrans';
                     $campaign->save();
                 }
@@ -205,6 +241,8 @@ class TransactionController extends Controller
     public function show(Request $request, $id)
     {
         CampaignController::triggerCampaignStatusBySystem();
+        $this->triggerTransactionStatusBySystem();
+
         $data = new Transaction();
         // Include related data
         if ($request->query('include')) {
@@ -226,6 +264,8 @@ class TransactionController extends Controller
     public function update(Request $request, $id)
     {
         CampaignController::triggerCampaignStatusBySystem();
+        $this->triggerTransactionStatusBySystem();
+
         $data = Transaction::find($id);
         $field_receipts = $request->only((new Receipt())->getFillable());
         if ($request->hasFile('file_receipt')) {
@@ -262,6 +302,8 @@ class TransactionController extends Controller
     public function transaction_approval(Request $request, $id)
     {
         CampaignController::triggerCampaignStatusBySystem();
+        $this->triggerTransactionStatusBySystem();
+
         $data = Transaction::find($id);
         $field_receipts = $request->only((new Receipt())->getFillable());
         if ($request->hasFile('file_receipt')) {
@@ -350,6 +392,20 @@ class TransactionController extends Controller
             ],
             'server_time' => (int)round(microtime(true) * 1000),
         ]);
+    }
+
+    public function triggerTransactionStatusBySystem(): void
+    {
+        $transactions = Transaction::where('status', 'WAITING_VERIFICATION ')->get();
+
+        foreach ($transactions as $transaction) {
+            $updatedAt = Carbon::parse($transaction->updated_at);
+            $currentTime = Carbon::now();
+
+            if ($updatedAt->diffInHours($currentTime) > 24 && (!is_null($transaction->payment_url) && $transaction->payment_url !== '')) {
+                $transaction->update(['status' => 'REJECTED']);
+            }
+        }
     }
 }
 
