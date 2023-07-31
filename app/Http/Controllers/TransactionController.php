@@ -97,7 +97,7 @@ class TransactionController extends Controller
         $field_transactions = $request->only((new Transaction())->getFillable());
         $field_transactions['id_user'] = $request->user()->id;
         $field_transactions['id_receipt'] = $receipts->id;
-        $field_transactions['payment_url'] = "";
+        $field_transactions['payment_url'] = null;
         $data = Transaction::create($field_transactions);
 
         $midtrans = $this->getMidtransConfiguration($data);
